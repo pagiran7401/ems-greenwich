@@ -186,7 +186,3 @@ This project is created for academic purposes as part of an MSc dissertation.
 
 ---
 
-**Author:** Abiskar Acharya
-**Institution:** University of Greenwich
-**Program:** MSc Data Science
-**Year:** 2025
