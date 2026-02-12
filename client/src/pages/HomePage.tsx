@@ -243,7 +243,7 @@ export default function HomePage() {
               <span className="text-white font-display font-bold">EMS Greenwich</span>
             </div>
             <p className="text-surface-400 text-sm">
-              © 2025 EMS Greenwich. MSc Dissertation Project.
+              © 2025 EMS Greenwich.
             </p>
           </div>
         </div>
