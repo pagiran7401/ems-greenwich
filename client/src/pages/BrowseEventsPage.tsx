@@ -1,31 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { IEvent, EventCategory, EventFilterInput } from '@ems/shared';
 import { getEvents } from '../services/events';
 import { eventCategories } from '@ems/shared';
 
-const categoryConfig: Record<string, { emoji: string; gradient: string }> = {
-  music: { emoji: '🎵', gradient: 'from-rose-500 to-pink-600' },
-  sports: { emoji: '⚽', gradient: 'from-emerald-500 to-green-600' },
-  arts: { emoji: '🎨', gradient: 'from-amber-500 to-orange-600' },
-  business: { emoji: '💼', gradient: 'from-blue-500 to-indigo-600' },
-  food: { emoji: '🍴', gradient: 'from-red-500 to-rose-600' },
-  health: { emoji: '💪', gradient: 'from-teal-500 to-cyan-600' },
-  tech: { emoji: '💻', gradient: 'from-violet-500 to-purple-600' },
-  other: { emoji: '📌', gradient: 'from-gray-500 to-slate-600' },
+const categoryConfig: Record<string, { emoji: string; gradient: string; color: string }> = {
+  music: { emoji: '🎵', gradient: 'from-rose-500 to-pink-600', color: 'bg-rose-100 text-rose-700 border-rose-200' },
+  sports: { emoji: '⚽', gradient: 'from-emerald-500 to-green-600', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  arts: { emoji: '🎨', gradient: 'from-amber-500 to-orange-600', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  business: { emoji: '💼', gradient: 'from-blue-500 to-indigo-600', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  food: { emoji: '🍴', gradient: 'from-red-500 to-rose-600', color: 'bg-red-100 text-red-700 border-red-200' },
+  health: { emoji: '💪', gradient: 'from-teal-500 to-cyan-600', color: 'bg-teal-100 text-teal-700 border-teal-200' },
+  tech: { emoji: '💻', gradient: 'from-violet-500 to-purple-600', color: 'bg-violet-100 text-violet-700 border-violet-200' },
+  other: { emoji: '📌', gradient: 'from-gray-500 to-slate-600', color: 'bg-gray-100 text-gray-700 border-gray-200' },
 };
+
+type DatePreset = 'all' | 'today' | 'week' | 'month' | 'custom';
+type PricePreset = 'all' | 'free' | 'under25' | 'under50' | 'over50';
 
 export default function BrowseEventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [events, setEvents] = useState<IEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [pricePreset, setPricePreset] = useState<PricePreset>('all');
+  const [showCustomDates, setShowCustomDates] = useState(false);
   const [filters, setFilters] = useState<EventFilterInput>({
     page: 1,
     limit: 12,
     sortBy: 'date',
     sortOrder: 'asc',
     category: searchParams.get('category') as EventCategory || undefined,
+    search: searchParams.get('search') || undefined,
   });
   const [pagination, setPagination] = useState({
     total: 0,
@@ -58,8 +65,20 @@ export default function BrowseEventsPage() {
       page: key === 'page' ? value : 1,
     };
     setFilters(newFilters);
+    updateUrlParams(newFilters);
+  };
 
-    // Update URL params
+  const updateFilters = (updates: Partial<EventFilterInput>) => {
+    const newFilters = {
+      ...filters,
+      ...updates,
+      page: 1,
+    };
+    setFilters(newFilters);
+    updateUrlParams(newFilters);
+  };
+
+  const updateUrlParams = (newFilters: EventFilterInput) => {
     const params = new URLSearchParams();
     if (newFilters.category) params.set('category', newFilters.category);
     if (newFilters.search) params.set('search', newFilters.search);
@@ -73,8 +92,89 @@ export default function BrowseEventsPage() {
       sortBy: 'date',
       sortOrder: 'asc',
     });
+    setDatePreset('all');
+    setPricePreset('all');
+    setShowCustomDates(false);
     setSearchParams({});
   };
+
+  // Date preset handlers
+  const handleDatePreset = (preset: DatePreset) => {
+    setDatePreset(preset);
+    const now = new Date();
+
+    switch (preset) {
+      case 'all':
+        updateFilters({ dateFrom: undefined, dateTo: undefined });
+        setShowCustomDates(false);
+        break;
+      case 'today': {
+        const today = now.toISOString().split('T')[0];
+        updateFilters({ dateFrom: today, dateTo: today });
+        setShowCustomDates(false);
+        break;
+      }
+      case 'week': {
+        const startOfWeek = new Date(now);
+        const dayOfWeek = startOfWeek.getDay();
+        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday start
+        startOfWeek.setDate(startOfWeek.getDate() - diff);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+        updateFilters({
+          dateFrom: startOfWeek.toISOString().split('T')[0],
+          dateTo: endOfWeek.toISOString().split('T')[0],
+        });
+        setShowCustomDates(false);
+        break;
+      }
+      case 'month': {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        updateFilters({
+          dateFrom: startOfMonth.toISOString().split('T')[0],
+          dateTo: endOfMonth.toISOString().split('T')[0],
+        });
+        setShowCustomDates(false);
+        break;
+      }
+      case 'custom':
+        setShowCustomDates(true);
+        break;
+    }
+  };
+
+  // Price preset handlers
+  const handlePricePreset = (preset: PricePreset) => {
+    setPricePreset(preset);
+
+    switch (preset) {
+      case 'all':
+        updateFilters({ priceMin: undefined, priceMax: undefined });
+        break;
+      case 'free':
+        updateFilters({ priceMin: 0, priceMax: 0 });
+        break;
+      case 'under25':
+        updateFilters({ priceMin: undefined, priceMax: 25 });
+        break;
+      case 'under50':
+        updateFilters({ priceMin: undefined, priceMax: 50 });
+        break;
+      case 'over50':
+        updateFilters({ priceMin: 50, priceMax: undefined });
+        break;
+    }
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.search) count++;
+    if (filters.category) count++;
+    if (filters.dateFrom || filters.dateTo) count++;
+    if (filters.priceMin !== undefined || filters.priceMax !== undefined) count++;
+    return count;
+  }, [filters]);
 
   return (
     <div className="min-h-screen bg-surface-50">
@@ -93,8 +193,9 @@ export default function BrowseEventsPage() {
       </div>
 
       <div className="container-custom py-8">
-        {/* Filters */}
+        {/* Filters Card */}
         <div className="card p-6 mb-8 animate-fade-in-up stagger-2">
+          {/* Row 1: Search + Sort + Clear */}
           <div className="flex flex-wrap gap-4 items-end">
             {/* Search */}
             <div className="flex-1 min-w-[240px]">
@@ -105,7 +206,7 @@ export default function BrowseEventsPage() {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search by name, venue..."
+                  placeholder="Search by name, description, venue..."
                   value={filters.search || ''}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
                   className="input pl-12"
@@ -113,36 +214,8 @@ export default function BrowseEventsPage() {
               </div>
             </div>
 
-            {/* Category */}
-            <div className="w-48">
-              <label className="label">Category</label>
-              <select
-                value={filters.category || ''}
-                onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-                className="input"
-              >
-                <option value="">All Categories</option>
-                {eventCategories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {categoryConfig[cat]?.emoji} {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Date */}
-            <div className="w-44">
-              <label className="label">From Date</label>
-              <input
-                type="date"
-                value={filters.dateFrom || ''}
-                onChange={(e) => handleFilterChange('dateFrom', e.target.value || undefined)}
-                className="input"
-              />
-            </div>
-
             {/* Sort */}
-            <div className="w-48">
+            <div className="w-52">
               <label className="label">Sort By</label>
               <select
                 value={`${filters.sortBy}-${filters.sortOrder}`}
@@ -150,26 +223,145 @@ export default function BrowseEventsPage() {
                   const [sortBy, sortOrder] = e.target.value.split('-');
                   setFilters((prev) => ({
                     ...prev,
-                    sortBy: sortBy as 'date' | 'name',
+                    sortBy: sortBy as 'date' | 'name' | 'price',
                     sortOrder: sortOrder as 'asc' | 'desc',
+                    page: 1,
                   }));
                 }}
                 className="input"
               >
                 <option value="date-asc">Date (Soonest)</option>
                 <option value="date-desc">Date (Latest)</option>
+                <option value="price-asc">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
                 <option value="name-asc">Name (A-Z)</option>
                 <option value="name-desc">Name (Z-A)</option>
               </select>
             </div>
 
             {/* Clear */}
-            <button onClick={clearFilters} className="btn-ghost">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Clear
-            </button>
+            {activeFilterCount > 0 && (
+              <button onClick={clearFilters} className="btn-ghost">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear ({activeFilterCount})
+              </button>
+            )}
+          </div>
+
+          {/* Row 2: Category Badges */}
+          <div className="mt-5">
+            <label className="label mb-2">Category</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleFilterChange('category', undefined)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+                  !filters.category
+                    ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                    : 'bg-white text-surface-600 border-surface-200 hover:border-surface-300 hover:bg-surface-50'
+                }`}
+              >
+                All
+              </button>
+              {eventCategories.map((cat) => {
+                const config = categoryConfig[cat];
+                const isActive = filters.category === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => handleFilterChange('category', isActive ? undefined : cat)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+                      isActive
+                        ? `${config.color} border-current shadow-sm`
+                        : 'bg-white text-surface-600 border-surface-200 hover:border-surface-300 hover:bg-surface-50'
+                    }`}
+                  >
+                    <span>{config.emoji}</span>
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Row 3: Date Presets + Price Presets */}
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Date Filter */}
+            <div>
+              <label className="label mb-2">Date Range</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'all' as DatePreset, label: 'Any Date' },
+                  { key: 'today' as DatePreset, label: 'Today' },
+                  { key: 'week' as DatePreset, label: 'This Week' },
+                  { key: 'month' as DatePreset, label: 'This Month' },
+                  { key: 'custom' as DatePreset, label: 'Custom' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => handleDatePreset(key)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                      datePreset === key
+                        ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                        : 'bg-white text-surface-600 border-surface-200 hover:border-surface-300 hover:bg-surface-50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {/* Custom date inputs */}
+              {showCustomDates && (
+                <div className="flex gap-3 mt-3">
+                  <div className="flex-1">
+                    <input
+                      type="date"
+                      value={filters.dateFrom || ''}
+                      onChange={(e) => handleFilterChange('dateFrom', e.target.value || undefined)}
+                      className="input text-sm"
+                      placeholder="From"
+                    />
+                  </div>
+                  <span className="self-center text-surface-400">to</span>
+                  <div className="flex-1">
+                    <input
+                      type="date"
+                      value={filters.dateTo || ''}
+                      onChange={(e) => handleFilterChange('dateTo', e.target.value || undefined)}
+                      className="input text-sm"
+                      placeholder="To"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Price Filter */}
+            <div>
+              <label className="label mb-2">Price Range</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'all' as PricePreset, label: 'Any Price' },
+                  { key: 'free' as PricePreset, label: 'Free' },
+                  { key: 'under25' as PricePreset, label: 'Under \u00a325' },
+                  { key: 'under50' as PricePreset, label: 'Under \u00a350' },
+                  { key: 'over50' as PricePreset, label: '\u00a350+' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => handlePricePreset(key)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                      pricePreset === key
+                        ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                        : 'bg-white text-surface-600 border-surface-200 hover:border-surface-300 hover:bg-surface-50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -252,6 +444,7 @@ export default function BrowseEventsPage() {
 
 function EventCard({ event, index }: { event: IEvent; index: number }) {
   const config = categoryConfig[event.category] || categoryConfig.other;
+  const eventWithPrices = event as IEvent & { minPrice?: number | null; maxPrice?: number | null };
 
   const formatDate = (date: Date | string) => {
     const d = new Date(date);
@@ -263,6 +456,24 @@ function EventCard({ event, index }: { event: IEvent; index: number }) {
   };
 
   const dateInfo = formatDate(event.eventDate);
+
+  const formatPrice = () => {
+    if (eventWithPrices.minPrice === null || eventWithPrices.minPrice === undefined) {
+      return null; // No tickets configured yet
+    }
+    if (eventWithPrices.minPrice === 0 && eventWithPrices.maxPrice === 0) {
+      return 'Free';
+    }
+    if (eventWithPrices.minPrice === 0) {
+      return 'Free+';
+    }
+    if (eventWithPrices.minPrice === eventWithPrices.maxPrice) {
+      return `\u00a3${eventWithPrices.minPrice.toFixed(2)}`;
+    }
+    return `From \u00a3${eventWithPrices.minPrice.toFixed(2)}`;
+  };
+
+  const priceDisplay = formatPrice();
 
   return (
     <Link
@@ -288,9 +499,22 @@ function EventCard({ event, index }: { event: IEvent; index: number }) {
         {/* Category Badge */}
         <div className="absolute top-4 right-4">
           <span className={`badge badge-${event.category}`}>
-            {event.category}
+            {config.emoji} {event.category}
           </span>
         </div>
+
+        {/* Price Badge */}
+        {priceDisplay && (
+          <div className="absolute bottom-4 right-4">
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-bold shadow-sm ${
+              priceDisplay === 'Free' || priceDisplay === 'Free+'
+                ? 'bg-emerald-500 text-white'
+                : 'bg-white text-surface-900'
+            }`}>
+              {priceDisplay}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -317,11 +541,22 @@ function EventCard({ event, index }: { event: IEvent; index: number }) {
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-surface-100">
-          <div className="flex items-center gap-2 text-sm text-surface-500">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {event.capacity} capacity
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-sm text-surface-500">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {event.capacity}
+            </div>
+            {priceDisplay && (
+              <span className={`text-sm font-semibold ${
+                priceDisplay === 'Free' || priceDisplay === 'Free+'
+                  ? 'text-emerald-600'
+                  : 'text-surface-700'
+              }`}>
+                {priceDisplay}
+              </span>
+            )}
           </div>
           <span className="text-primary-600 font-semibold text-sm group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
             View Details

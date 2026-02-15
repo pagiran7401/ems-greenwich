@@ -16,6 +16,7 @@ import BookingConfirmPage from './pages/BookingConfirmPage';
 import ManageTicketsPage from './pages/ManageTicketsPage';
 import AttendeesPage from './pages/AttendeesPage';
 import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Layout
 import Layout from './components/Layout';
@@ -50,6 +51,16 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Profile route */}
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

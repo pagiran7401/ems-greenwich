@@ -43,12 +43,15 @@ export default function CreateEventPage() {
   const minDate = tomorrow.toISOString().split('T')[0];
 
   return (
-    <div className="container-custom py-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Event</h1>
-          <p className="text-gray-600 mt-1">Fill in the details to create your event</p>
+    <div className="min-h-screen bg-surface-50">
+      <div className="bg-gradient-hero py-10">
+        <div className="container-custom">
+          <h1 className="text-display-md text-white mb-2">Create New Event</h1>
+          <p className="text-primary-200">Fill in the details to create your event</p>
         </div>
+      </div>
+      <div className="container-custom py-8">
+      <div className="max-w-2xl mx-auto">
 
         <div className="card p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -230,7 +233,7 @@ export default function CreateEventPage() {
                   <span>Published</span>
                 </label>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-surface-500 mt-1">
                 Draft events are only visible to you. Published events are visible to everyone.
               </p>
             </div>
@@ -254,6 +257,7 @@ export default function CreateEventPage() {
             </div>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );

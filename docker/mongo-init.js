@@ -1,7 +1,7 @@
 // MongoDB Initialization Script
 // This runs when the container is first created
 
-db = db.getSiblingDB('ems_db');
+db = db.getSiblingDB('evento_db');
 
 // Create collections with validators
 db.createCollection('users', {
@@ -52,4 +52,4 @@ db.bookings.createIndex({ eventId: 1 });
 db.notifications.createIndex({ userId: 1 });
 db.notifications.createIndex({ createdAt: -1 });
 
-print('EMS Database initialized successfully!');
+print('EVENTO Database initialized successfully!');

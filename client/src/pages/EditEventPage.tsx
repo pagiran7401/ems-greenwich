@@ -77,12 +77,15 @@ export default function EditEventPage() {
   }
 
   return (
-    <div className="container-custom py-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Event</h1>
-          <p className="text-gray-600 mt-1">Update your event details</p>
+    <div className="min-h-screen bg-surface-50">
+      <div className="bg-gradient-hero py-10">
+        <div className="container-custom">
+          <h1 className="text-display-md text-white mb-2">Edit Event</h1>
+          <p className="text-primary-200">Update your event details</p>
         </div>
+      </div>
+      <div className="container-custom py-8">
+      <div className="max-w-2xl mx-auto">
 
         <div className="card p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -286,6 +289,7 @@ export default function EditEventPage() {
             </div>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );

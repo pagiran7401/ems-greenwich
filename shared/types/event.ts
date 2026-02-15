@@ -39,6 +39,7 @@ export interface IEventWithOrganizer extends IEvent {
   };
   ticketCount?: number;
   minPrice?: number;
+  maxPrice?: number;
 }
 
 // Create event payload

@@ -37,12 +37,19 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 bg-surface-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Create an account</h2>
-          <p className="mt-2 text-gray-600">
-            Join EMS Greenwich to discover and manage events
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mx-auto mb-6 shadow-glow">
+            <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <h2 className="text-display-sm text-surface-900">Create an account</h2>
+          <p className="mt-2 text-surface-600">
+            Join EVENTO to discover and manage events
           </p>
         </div>
 
@@ -59,9 +66,9 @@ export default function RegisterPage() {
                     {...register('userType')}
                     className="sr-only peer"
                   />
-                  <div className="p-4 border-2 rounded-lg cursor-pointer text-center peer-checked:border-primary-600 peer-checked:bg-primary-50 hover:border-gray-300 transition-colors">
+                  <div className="p-4 border-2 rounded-xl cursor-pointer text-center peer-checked:border-primary-600 peer-checked:bg-primary-50 hover:border-surface-300 transition-colors">
                     <span className="text-2xl block mb-1">🎟️</span>
-                    <span className="font-medium">Attend Events</span>
+                    <span className="font-medium text-surface-900">Attend Events</span>
                   </div>
                 </label>
                 <label className="flex-1">
@@ -71,9 +78,9 @@ export default function RegisterPage() {
                     {...register('userType')}
                     className="sr-only peer"
                   />
-                  <div className="p-4 border-2 rounded-lg cursor-pointer text-center peer-checked:border-primary-600 peer-checked:bg-primary-50 hover:border-gray-300 transition-colors">
+                  <div className="p-4 border-2 rounded-xl cursor-pointer text-center peer-checked:border-primary-600 peer-checked:bg-primary-50 hover:border-surface-300 transition-colors">
                     <span className="text-2xl block mb-1">📋</span>
-                    <span className="font-medium">Organize Events</span>
+                    <span className="font-medium text-surface-900">Organize Events</span>
                   </div>
                 </label>
               </div>
@@ -142,12 +149,12 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 {...register('password')}
                 className={`input ${errors.password ? 'input-error' : ''}`}
-                placeholder="••••••••"
+                placeholder="Create a strong password"
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-surface-500">
                 Min 8 characters, 1 uppercase, 1 lowercase, 1 number
               </p>
             </div>
@@ -163,7 +170,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 {...register('confirmPassword')}
                 className={`input ${errors.confirmPassword ? 'input-error' : ''}`}
-                placeholder="••••••••"
+                placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
@@ -206,7 +213,7 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-surface-600">
               Already have an account?{' '}
               <Link to="/login" className="text-primary-600 hover:text-primary-500 font-medium">
                 Sign in

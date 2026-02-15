@@ -59,17 +59,24 @@ export default function MyEventsPage() {
   }
 
   return (
-    <div className="container-custom py-8">
+    <div className="min-h-screen bg-surface-50">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Events</h1>
-          <p className="text-gray-600 mt-1">Manage your events</p>
+      <div className="bg-gradient-hero py-10">
+        <div className="container-custom flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-display-md text-white mb-2">My Events</h1>
+            <p className="text-primary-200">Manage your events</p>
+          </div>
+          <Link to="/create-event" className="btn bg-white text-primary-700 hover:bg-primary-50 mt-4 md:mt-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Create New Event
+          </Link>
         </div>
-        <Link to="/create-event" className="btn-primary mt-4 md:mt-0">
-          ➕ Create New Event
-        </Link>
       </div>
+
+      <div className="container-custom py-8">
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -83,8 +90,8 @@ export default function MyEventsPage() {
       {filteredEvents.length === 0 ? (
         <div className="card p-12 text-center">
           <span className="text-6xl block mb-4">📭</span>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No events yet</h3>
-          <p className="text-gray-600 mb-6">
+          <h3 className="text-xl font-semibold text-surface-900 mb-2">No events yet</h3>
+          <p className="text-surface-600 mb-6">
             {filter === 'all'
               ? "You haven't created any events yet."
               : `You don't have any ${filter} events.`}
@@ -100,6 +107,7 @@ export default function MyEventsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -128,11 +136,11 @@ function StatCard({
     <button
       onClick={onClick}
       className={`p-4 rounded-lg border-2 transition-all ${
-        active ? `${colorClasses[color]} ring-2 ring-primary-500` : 'bg-white border-gray-200 hover:border-gray-300'
+        active ? `${colorClasses[color]} ring-2 ring-primary-500` : 'bg-white border-surface-200 hover:border-surface-300'
       }`}
     >
       <div className="text-2xl font-bold">{value}</div>
-      <div className="text-sm text-gray-600">{label}</div>
+      <div className="text-sm text-surface-600">{label}</div>
     </button>
   );
 }
@@ -171,12 +179,12 @@ function EventRow({ event, onDelete }: { event: IEvent; onDelete: (id: string, n
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">{categoryEmojis[event.category] || '📌'}</span>
-            <h3 className="text-lg font-semibold text-gray-900">{event.eventName}</h3>
+            <h3 className="text-lg font-semibold text-surface-900">{event.eventName}</h3>
             <span className={`px-2 py-1 text-xs rounded-full ${statusColors[event.status]}`}>
               {event.status}
             </span>
           </div>
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+          <div className="flex flex-wrap gap-4 text-sm text-surface-600">
             <span>📅 {formatDate(event.eventDate)}</span>
             <span>⏰ {event.eventTime}</span>
             <span>📍 {event.venue}</span>

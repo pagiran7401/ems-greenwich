@@ -11,10 +11,43 @@ const categories = [
 ];
 
 const stats = [
-  { value: '10K+', label: 'Events Hosted' },
-  { value: '50K+', label: 'Happy Attendees' },
-  { value: '500+', label: 'Organizers' },
-  { value: '99%', label: 'Satisfaction' },
+  { value: '10K+', label: 'Events Hosted', icon: '📅' },
+  { value: '50K+', label: 'Happy Attendees', icon: '🎉' },
+  { value: '500+', label: 'Organizers', icon: '👤' },
+  { value: '99%', label: 'Satisfaction', icon: '⭐' },
+];
+
+const steps = [
+  {
+    number: '01',
+    title: 'Browse Events',
+    description: 'Explore a curated selection of events happening near you. Filter by category, date, or location.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    ),
+  },
+  {
+    number: '02',
+    title: 'Book Tickets',
+    description: 'Select your tickets, choose your quantity, and complete your booking in seconds.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+      </svg>
+    ),
+  },
+  {
+    number: '03',
+    title: 'Enjoy the Experience',
+    description: 'Show up, check in, and create unforgettable memories at amazing events.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function HomePage() {
@@ -26,32 +59,32 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-gradient-hero noise-overlay">
         {/* Decorative Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/20 rounded-full blur-3xl animate-float" />
-          <div className="absolute top-1/2 -left-20 w-60 h-60 bg-accent-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-          <div className="absolute bottom-0 right-1/3 w-40 h-40 bg-primary-400/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }} />
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary-400/20 rounded-full blur-3xl animate-float" />
+          <div className="absolute top-1/2 -left-20 w-72 h-72 bg-warm-500/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+          <div className="absolute bottom-0 right-1/3 w-48 h-48 bg-primary-300/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }} />
         </div>
 
         <div className="container-custom relative">
-          <div className="py-24 md:py-32 lg:py-40">
+          <div className="py-32 md:py-40 lg:py-48">
             <div className="max-w-4xl mx-auto text-center">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8 animate-fade-in-down">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-soft" />
-                <span className="text-sm text-white/90 font-medium">Discover events near you</span>
+                <span className="w-2 h-2 rounded-full bg-warm-400 animate-pulse-soft" />
+                <span className="text-sm text-white/90 font-medium">Discover your next experience</span>
               </div>
 
               {/* Headline */}
               <h1 className="text-display-xl md:text-display-2xl text-white mb-6 animate-fade-in-up">
                 Where Moments
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-300 via-accent-400 to-primary-300">
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-300 via-warm-400 to-primary-300">
                   Become Memories
                 </span>
               </h1>
 
               {/* Subheadline */}
               <p className="text-lg md:text-xl text-primary-100 max-w-2xl mx-auto mb-10 animate-fade-in-up stagger-1">
-                Your premier destination for discovering, organizing, and experiencing
-                unforgettable events. From intimate gatherings to grand celebrations.
+                The modern platform for discovering, organizing, and experiencing
+                unforgettable events. Free for organizers, seamless for attendees.
               </p>
 
               {/* CTAs */}
@@ -86,8 +119,61 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Section */}
+      {/* How It Works Section */}
       <section className="section bg-surface-50">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-warm-100 text-warm-700 text-sm font-semibold mb-4">
+              How It Works
+            </span>
+            <h2 className="text-display-md text-surface-900 mb-4">
+              Three simple steps to your next event
+            </h2>
+            <p className="text-surface-600 max-w-2xl mx-auto">
+              Whether you are attending or organizing, EVENTO makes it effortless
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {steps.map((step, index) => (
+              <div
+                key={step.number}
+                className="relative group animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.15}s` }}
+              >
+                <div className="card p-8 text-center h-full hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300">
+                  {/* Step Number */}
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-600 text-white text-xs font-bold shadow-glow">
+                      {step.number}
+                    </span>
+                  </div>
+
+                  {/* Icon */}
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600 mb-5 group-hover:bg-primary-100 group-hover:scale-110 transition-all duration-300">
+                    {step.icon}
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-surface-900 mb-3">{step.title}</h3>
+                  <p className="text-surface-600 leading-relaxed">{step.description}</p>
+                </div>
+
+                {/* Connector arrow (not on last item) */}
+                {index < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                    <svg className="w-8 h-8 text-surface-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="section bg-white">
         <div className="container-custom">
           <div className="text-center mb-12">
             <h2 className="text-display-md text-surface-900 mb-4">
@@ -121,34 +207,48 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="section bg-white">
+      <section className="section bg-surface-50">
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left: Content */}
             <div>
-              <span className="badge badge-tech mb-4">Why EMS Greenwich</span>
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100 text-primary-700 text-sm font-semibold mb-4">
+                Why EVENTO
+              </span>
               <h2 className="text-display-md text-surface-900 mb-6">
                 Everything you need to create
                 <span className="text-gradient"> amazing events</span>
               </h2>
               <p className="text-lg text-surface-600 mb-8">
-                Whether you're hosting a small meetup or a large conference, our platform
+                Whether you are hosting a small meetup or a large conference, our platform
                 provides all the tools you need to make your event a success.
               </p>
 
               <div className="space-y-6">
                 <FeatureItem
-                  icon="🎯"
+                  icon={
+                    <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  }
                   title="Easy Event Discovery"
-                  description="Powerful search and filtering to find exactly what you're looking for"
+                  description="Powerful search and filtering to find exactly what you are looking for"
                 />
                 <FeatureItem
-                  icon="🎫"
+                  icon={
+                    <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                    </svg>
+                  }
                   title="Seamless Ticketing"
                   description="Multiple ticket types, pricing tiers, and instant booking confirmation"
                 />
                 <FeatureItem
-                  icon="📊"
+                  icon={
+                    <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  }
                   title="Real-time Analytics"
                   description="Track sales, attendance, and engagement with detailed insights"
                 />
@@ -190,8 +290,16 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gradient-hero">
-        <div className="container-custom">
+      <section className="py-20 bg-gradient-hero relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-64 h-64 bg-warm-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-primary-400/10 rounded-full blur-3xl" />
+        </div>
+        <div className="container-custom relative">
+          <div className="text-center mb-12">
+            <h2 className="text-display-md text-white mb-3">Trusted by thousands</h2>
+            <p className="text-primary-200">Join a growing community of event organizers and attendees</p>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div
@@ -199,8 +307,11 @@ export default function HomePage() {
                 className="text-center animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="text-display-md text-white mb-2">{stat.value}</div>
-                <div className="text-primary-200">{stat.label}</div>
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm mb-4">
+                  <span className="text-2xl">{stat.icon}</span>
+                </div>
+                <div className="text-display-md text-white mb-1">{stat.value}</div>
+                <div className="text-warm-300 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -212,8 +323,11 @@ export default function HomePage() {
         <div className="container-custom">
           <div className="card p-12 md:p-16 text-center bg-gradient-mesh relative overflow-hidden">
             <div className="relative">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-warm-100 text-warm-700 text-sm font-semibold mb-6">
+                Get Started Today
+              </div>
               <h2 className="text-display-md text-surface-900 mb-4">
-                Ready to Get Started?
+                Ready to create something unforgettable?
               </h2>
               <p className="text-lg text-surface-600 mb-8 max-w-xl mx-auto">
                 Join thousands of event organizers and attendees. Create your account
@@ -236,14 +350,22 @@ export default function HomePage() {
       <footer className="py-12 bg-surface-900">
         <div className="container-custom">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                <span className="text-xl">🎫</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
               </div>
-              <span className="text-white font-display font-bold">EMS Greenwich</span>
+              <span className="text-white font-display font-bold text-lg tracking-tight">EVENTO</span>
             </div>
-            <p className="text-surface-400 text-sm">
-              © 2025 EMS Greenwich.
+            <div className="flex items-center gap-6 text-surface-400 text-sm">
+              <Link to="/events" className="hover:text-white transition-colors">Browse Events</Link>
+              <Link to="/register" className="hover:text-white transition-colors">Get Started</Link>
+            </div>
+            <p className="text-surface-500 text-sm">
+              &copy; 2026 EVENTO. All rights reserved.
             </p>
           </div>
         </div>
@@ -257,13 +379,13 @@ function FeatureItem({
   title,
   description,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   description: string;
 }) {
   return (
     <div className="flex gap-4">
-      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-2xl">
+      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center">
         {icon}
       </div>
       <div>

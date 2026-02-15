@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import type { IEvent, BookingAttendee } from '@ems/shared';
 import { getEventById } from '../services/events';
 import { getEventAttendees, checkInAttendee } from '../services/bookings';
+import { exportToCSV } from '../utils/csvExport';
 
 export default function AttendeesPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -63,25 +64,20 @@ export default function AttendeesPage() {
   const checkedInCount = attendees.filter((a) => a.checkInStatus === 'checked_in').length;
   const totalTickets = attendees.reduce((sum, a) => sum + a.quantity, 0);
 
-  const exportCSV = () => {
-    const headers = ['Name', 'Email', 'Ticket Type', 'Quantity', 'Total', 'Check-in Status', 'Booking Date'];
+  const handleExportCSV = () => {
+    const headers = ['First Name', 'Last Name', 'Email', 'Ticket Type', 'Quantity', 'Total (GBP)', 'Check-in Status', 'Booking Date'];
     const rows = attendees.map((a) => [
-      `${a.attendee?.firstName} ${a.attendee?.lastName}`,
-      a.attendee?.email,
+      a.attendee?.firstName ?? '',
+      a.attendee?.lastName ?? '',
+      a.attendee?.email ?? '',
       a.ticketType,
       a.quantity,
-      `£${a.totalAmount.toFixed(2)}`,
-      a.checkInStatus,
+      a.totalAmount.toFixed(2),
+      a.checkInStatus === 'checked_in' ? 'Checked In' : 'Not Checked In',
       new Date(a.bookingDate).toLocaleDateString('en-GB'),
     ]);
-
-    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `attendees-${eventId}.csv`;
-    link.click();
+    exportToCSV(`attendees-${eventId}.csv`, headers, rows);
+    toast.success('Attendees list exported');
   };
 
   if (isLoading) {
@@ -116,7 +112,7 @@ export default function AttendeesPage() {
             <h1 className="text-display-sm text-surface-900">Attendees</h1>
             <p className="text-surface-600">{event.eventName}</p>
           </div>
-          <button onClick={exportCSV} className="btn-secondary">
+          <button onClick={handleExportCSV} className="btn-secondary">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>

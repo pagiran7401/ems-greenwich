@@ -3,19 +3,19 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:7.0
-    container_name: ems-mongodb
+    container_name: evento-mongodb
     restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-emsadmin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-emspassword}
-      MONGO_INITDB_DATABASE: ems_db
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-eventoadmin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-eventopassword}
+      MONGO_INITDB_DATABASE: evento_db
     volumes:
       - mongodb_data:/data/db
       - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
-      - ems-network
+      - evento-network
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -26,14 +26,14 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.server
-    container_name: ems-server
+    container_name: evento-server
     restart: unless-stopped
     ports:
       - "5001:5001"
     environment:
       NODE_ENV: development
       PORT: 5001
-      MONGODB_URI: mongodb://emsadmin:emspassword@mongodb:27017/ems_db?authSource=admin
+      MONGODB_URI: mongodb://eventoadmin:eventopassword@mongodb:27017/evento_db?authSource=admin
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       JWT_EXPIRES_IN: 30m
     volumes:
@@ -44,13 +44,13 @@ services:
       mongodb:
         condition: service_healthy
     networks:
-      - ems-network
+      - evento-network
 
   client:
     build:
       context: .
       dockerfile: docker/Dockerfile.client
-    container_name: ems-client
+    container_name: evento-client
     restart: unless-stopped
     ports:
       - "5173:5173"
@@ -63,11 +63,11 @@ services:
     depends_on:
       - server
     networks:
-      - ems-network
+      - evento-network
 
 volumes:
   mongodb_data:
 
 networks:
-  ems-network:
+  evento-network:
     driver: bridge

@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import Event from '../models/Event';
+import Ticket from '../models/Ticket';
+import Booking from '../models/Booking';
 import { AppError } from '../middleware/errorHandler';
+import { createNotification } from '../utils/notifications';
 import type {
   CreateEventInput,
   UpdateEventInput,
@@ -30,7 +33,7 @@ export const createEvent = async (
     res.status(201).json({
       success: true,
       message: 'Event created successfully',
-      data: event.toJSON() as IEvent,
+      data: event.toJSON() as unknown as IEvent,
     });
   } catch (error) {
     next(error);
@@ -41,29 +44,28 @@ export const createEvent = async (
 // @route   GET /api/events
 // @access  Public
 export const getEvents = async (
-  req: Request<{}, {}, {}, EventFilterInput>,
-  res: Response<PaginatedResponse<IEvent>>,
+  req: Request,
+  res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const {
-      search,
-      category,
-      dateFrom,
-      dateTo,
-      priceMin,
-      priceMax,
-      status,
-      page = 1,
-      limit = 20,
-      sortBy = 'date',
-      sortOrder = 'asc',
-    } = req.query;
+    const query_params = req.query as Record<string, any>;
+    const search = query_params.search as string | undefined;
+    const category = query_params.category as string | undefined;
+    const dateFrom = query_params.dateFrom as string | undefined;
+    const dateTo = query_params.dateTo as string | undefined;
+    const priceMin = query_params.priceMin ? Number(query_params.priceMin) : undefined;
+    const priceMax = query_params.priceMax ? Number(query_params.priceMax) : undefined;
+    const status = query_params.status as string | undefined;
+    const page = Number(query_params.page) || 1;
+    const limit = Number(query_params.limit) || 20;
+    const sortBy = (query_params.sortBy as string) || 'date';
+    const sortOrder = (query_params.sortOrder as string) || 'asc';
 
     // Build query - only show published events to public
     const query: any = { status: status || 'published' };
 
-    // Text search
+    // Text search on eventName, description, and venue
     if (search) {
       query.$or = [
         { eventName: { $regex: search, $options: 'i' } },
@@ -81,10 +83,41 @@ export const getEvents = async (
     if (dateFrom || dateTo) {
       query.eventDate = {};
       if (dateFrom) query.eventDate.$gte = new Date(dateFrom);
-      if (dateTo) query.eventDate.$lte = new Date(dateTo);
+      if (dateTo) {
+        // Set end of day for dateTo to be inclusive
+        const endDate = new Date(dateTo);
+        endDate.setHours(23, 59, 59, 999);
+        query.eventDate.$lte = endDate;
+      }
     } else {
       // By default, only show upcoming events
       query.eventDate = { $gte: new Date() };
+    }
+
+    // If price filtering is needed, first find event IDs that match the price range
+    let priceFilteredEventIds: string[] | null = null;
+    const hasPriceFilter = priceMin !== undefined || priceMax !== undefined;
+
+    if (hasPriceFilter) {
+      const ticketQuery: any = { isActive: true };
+      if (priceMin !== undefined && priceMax !== undefined) {
+        ticketQuery.price = { $gte: Number(priceMin), $lte: Number(priceMax) };
+      } else if (priceMin !== undefined) {
+        ticketQuery.price = { $gte: Number(priceMin) };
+      } else if (priceMax !== undefined) {
+        ticketQuery.price = { $lte: Number(priceMax) };
+      }
+
+      const matchingTickets = await Ticket.find(ticketQuery)
+        .select('eventId')
+        .lean();
+
+      priceFilteredEventIds = [
+        ...new Set(matchingTickets.map((t) => t.eventId.toString())),
+      ];
+
+      // Add event ID filter to the query
+      query._id = { $in: priceFilteredEventIds };
     }
 
     // Build sort
@@ -93,29 +126,113 @@ export const getEvents = async (
       case 'name':
         sortOptions.eventName = sortOrder === 'asc' ? 1 : -1;
         break;
+      case 'price':
+        // Price sorting will be handled post-query after enrichment
+        // Default to date for the DB query
+        sortOptions.eventDate = 1;
+        break;
       case 'date':
       default:
         sortOptions.eventDate = sortOrder === 'asc' ? 1 : -1;
         break;
     }
 
-    // Execute query with pagination
+    // For price sorting, we need to fetch all matching events, enrich, sort, then paginate
+    const isPriceSorting = sortBy === 'price';
     const skip = (page - 1) * limit;
-    const [events, total] = await Promise.all([
-      Event.find(query)
-        .populate('organizerId', 'firstName lastName')
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Event.countDocuments(query),
-    ]);
+
+    let events: any[];
+    let total: number;
+
+    if (isPriceSorting) {
+      // Fetch all matching events for price sorting (we need all to sort properly)
+      const [allEvents, count] = await Promise.all([
+        Event.find(query)
+          .populate('organizerId', 'firstName lastName')
+          .lean(),
+        Event.countDocuments(query),
+      ]);
+      total = count;
+
+      // Enrich with ticket prices
+      const eventIds = allEvents.map((e: any) => e._id);
+      const ticketPrices = await Ticket.aggregate([
+        { $match: { eventId: { $in: eventIds }, isActive: true } },
+        {
+          $group: {
+            _id: '$eventId',
+            minPrice: { $min: '$price' },
+            maxPrice: { $max: '$price' },
+          },
+        },
+      ]);
+
+      const priceMap = new Map(
+        ticketPrices.map((t: any) => [t._id.toString(), { minPrice: t.minPrice, maxPrice: t.maxPrice }])
+      );
+
+      const enrichedEvents = allEvents.map((event: any) => {
+        const prices = priceMap.get(event._id.toString());
+        return {
+          ...event,
+          minPrice: prices?.minPrice ?? null,
+          maxPrice: prices?.maxPrice ?? null,
+        };
+      });
+
+      // Sort by price
+      enrichedEvents.sort((a: any, b: any) => {
+        const priceA = a.minPrice ?? (sortOrder === 'asc' ? Infinity : -Infinity);
+        const priceB = b.minPrice ?? (sortOrder === 'asc' ? Infinity : -Infinity);
+        return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+      });
+
+      // Paginate
+      events = enrichedEvents.slice(skip, skip + limit);
+    } else {
+      // Standard query with pagination
+      [events, total] = await Promise.all([
+        Event.find(query)
+          .populate('organizerId', 'firstName lastName')
+          .sort(sortOptions)
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Event.countDocuments(query),
+      ]);
+
+      // Enrich events with ticket price information
+      const eventIds = events.map((e: any) => e._id);
+      const ticketPrices = await Ticket.aggregate([
+        { $match: { eventId: { $in: eventIds }, isActive: true } },
+        {
+          $group: {
+            _id: '$eventId',
+            minPrice: { $min: '$price' },
+            maxPrice: { $max: '$price' },
+          },
+        },
+      ]);
+
+      const priceMap = new Map(
+        ticketPrices.map((t: any) => [t._id.toString(), { minPrice: t.minPrice, maxPrice: t.maxPrice }])
+      );
+
+      events = events.map((event: any) => {
+        const prices = priceMap.get(event._id.toString());
+        return {
+          ...event,
+          minPrice: prices?.minPrice ?? null,
+          maxPrice: prices?.maxPrice ?? null,
+        };
+      });
+    }
 
     const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       success: true,
-      data: events as IEvent[],
+      data: events as unknown as IEvent[],
       pagination: {
         page,
         limit,
@@ -147,9 +264,27 @@ export const getEventById = async (
       throw new AppError('Event not found', 404);
     }
 
+    // Enrich with ticket price information
+    const ticketPrices = await Ticket.aggregate([
+      { $match: { eventId: event._id, isActive: true } },
+      {
+        $group: {
+          _id: '$eventId',
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+    ]);
+
+    const enrichedEvent = {
+      ...event,
+      minPrice: ticketPrices[0]?.minPrice ?? null,
+      maxPrice: ticketPrices[0]?.maxPrice ?? null,
+    };
+
     res.status(200).json({
       success: true,
-      data: event as IEvent,
+      data: enrichedEvent as unknown as IEvent,
     });
   } catch (error) {
     next(error);
@@ -173,7 +308,7 @@ export const getOrganizerEvents = async (
 
     res.status(200).json({
       success: true,
-      data: events as IEvent[],
+      data: events as unknown as IEvent[],
     });
   } catch (error) {
     next(error);
@@ -208,16 +343,55 @@ export const updateEvent = async (
       (updateData as any).eventDate = new Date(updateData.eventDate);
     }
 
+    // Check if event is being cancelled
+    const isCancelling = updateData.status === 'cancelled' && event.status !== 'cancelled';
+    const previousStatus = event.status;
+
     const updatedEvent = await Event.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true }
     ).lean();
 
+    // Send notifications to attendees with confirmed bookings
+    try {
+      const confirmedBookings = await Booking.find({
+        eventId: req.params.id,
+        paymentStatus: 'completed',
+      }).select('attendeeId');
+
+      const attendeeIds = [...new Set(confirmedBookings.map(b => b.attendeeId.toString()))];
+
+      if (isCancelling) {
+        // Event cancelled - notify all attendees
+        for (const attendeeId of attendeeIds) {
+          await createNotification({
+            userId: attendeeId,
+            message: `The event ${event.eventName} has been cancelled`,
+            type: 'event_cancelled',
+            relatedEventId: req.params.id,
+          });
+        }
+      } else if (attendeeIds.length > 0) {
+        // Event updated - notify all attendees
+        for (const attendeeId of attendeeIds) {
+          await createNotification({
+            userId: attendeeId,
+            message: `${event.eventName} has been updated. Check the latest details.`,
+            type: 'event_updated',
+            relatedEventId: req.params.id,
+          });
+        }
+      }
+    } catch (notifError) {
+      // Don't let notification failures break the update flow
+      console.error('Failed to send event update notifications:', notifError);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Event updated successfully',
-      data: updatedEvent as IEvent,
+      data: updatedEvent as unknown as IEvent,
     });
   } catch (error) {
     next(error);

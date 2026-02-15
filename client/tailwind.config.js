@@ -7,19 +7,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary - Deep Navy to Indigo
+        // Primary - Soft Purple/Indigo (Zeffy-inspired)
         primary: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+          50: '#f5f3ff',
+          100: '#ede9fe',
+          200: '#ddd6fe',
+          300: '#c4b5fd',
+          400: '#a78bfa',
+          500: '#8b5cf6',
+          600: '#5B4FD1',
+          700: '#4c3db5',
+          800: '#3d3199',
+          900: '#2e2573',
+          950: '#1a1545',
+        },
+        // Warm accent - Gold (Zeffy-inspired)
+        warm: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#F5A623',
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
         },
         // Category Colors - Vibrant & Distinctive
         category: {
@@ -32,7 +45,7 @@ export default {
           tech: '#8b5cf6',       // Violet
           other: '#6b7280',      // Gray
         },
-        // Accent - Coral/Salmon for CTAs
+        // Accent - Coral/Salmon for secondary CTAs
         accent: {
           50: '#fff1f2',
           100: '#ffe4e6',
@@ -75,8 +88,9 @@ export default {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
         'soft-lg': '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 2px 10px -2px rgba(0, 0, 0, 0.04)',
         'soft-xl': '0 20px 50px -12px rgba(0, 0, 0, 0.15)',
-        'glow': '0 0 40px -10px rgba(99, 102, 241, 0.3)',
+        'glow': '0 0 40px -10px rgba(91, 79, 209, 0.3)',
         'glow-accent': '0 0 40px -10px rgba(244, 63, 94, 0.3)',
+        'glow-warm': '0 0 40px -10px rgba(245, 166, 35, 0.3)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

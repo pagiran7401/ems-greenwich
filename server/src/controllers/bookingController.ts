@@ -4,7 +4,10 @@ import Stripe from 'stripe';
 import Booking from '../models/Booking';
 import Ticket from '../models/Ticket';
 import Event from '../models/Event';
+import User from '../models/User';
 import { createBookingSchema } from '@ems/shared';
+import { createNotification } from '../utils/notifications';
+import { sendBookingConfirmationEmail } from '../utils/emailService';
 
 // Initialize Stripe (test mode)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
@@ -73,6 +76,29 @@ export const createBooking = async (req: Request, res: Response) => {
       // Update ticket sold count
       ticket.quantitySold += quantity;
       await ticket.save();
+
+      // Create notification and send confirmation email
+      await createNotification({
+        userId: userId!.toString(),
+        message: `Your booking for ${event.eventName} has been confirmed!`,
+        type: 'booking_confirmed',
+        relatedEventId: eventId,
+        relatedBookingId: booking._id.toString(),
+      });
+
+      const attendeeUser = await User.findById(userId);
+      if (attendeeUser) {
+        await sendBookingConfirmationEmail({
+          to: attendeeUser.email,
+          attendeeName: `${attendeeUser.firstName} ${attendeeUser.lastName}`,
+          eventName: event.eventName,
+          eventDate: event.eventDate.toISOString(),
+          venue: event.venue,
+          ticketType: ticket.ticketType,
+          quantity,
+          totalAmount,
+        });
+      }
 
       return res.status(201).json({
         success: true,
@@ -172,6 +198,32 @@ export const confirmPayment = async (req: Request, res: Response) => {
     if (ticket) {
       ticket.quantitySold += booking.quantity;
       await ticket.save();
+    }
+
+    // Create notification and send confirmation email
+    const event = await Event.findById(booking.eventId);
+    if (event) {
+      await createNotification({
+        userId: booking.attendeeId.toString(),
+        message: `Your booking for ${event.eventName} has been confirmed!`,
+        type: 'booking_confirmed',
+        relatedEventId: booking.eventId.toString(),
+        relatedBookingId: booking._id.toString(),
+      });
+
+      const attendeeUser = await User.findById(booking.attendeeId);
+      if (attendeeUser && ticket) {
+        await sendBookingConfirmationEmail({
+          to: attendeeUser.email,
+          attendeeName: `${attendeeUser.firstName} ${attendeeUser.lastName}`,
+          eventName: event.eventName,
+          eventDate: event.eventDate.toISOString(),
+          venue: event.venue,
+          ticketType: ticket.ticketType,
+          quantity: booking.quantity,
+          totalAmount: booking.totalAmount,
+        });
+      }
     }
 
     res.json({

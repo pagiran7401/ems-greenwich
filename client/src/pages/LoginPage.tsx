@@ -34,12 +34,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4 bg-surface-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-          <p className="mt-2 text-gray-600">
-            Sign in to your account to continue
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mx-auto mb-6 shadow-glow">
+            <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <h2 className="text-display-sm text-surface-900">Welcome back</h2>
+          <p className="mt-2 text-surface-600">
+            Sign in to your EVENTO account to continue
           </p>
         </div>
 
@@ -74,7 +81,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 {...register('password')}
                 className={`input ${errors.password ? 'input-error' : ''}`}
-                placeholder="••••••••"
+                placeholder="Enter your password"
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
@@ -117,7 +124,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-surface-600">
               Don't have an account?{' '}
               <Link to="/register" className="text-primary-600 hover:text-primary-500 font-medium">
                 Register here

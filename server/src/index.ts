@@ -13,6 +13,7 @@ import eventRoutes from './routes/events';
 import ticketRoutes from './routes/tickets';
 import bookingRoutes from './routes/bookings';
 import analyticsRoutes from './routes/analytics';
+import notificationRoutes from './routes/notifications';
 
 // Load environment variables from root .env
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -41,6 +42,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling
 app.use(notFoundHandler);
@@ -56,7 +58,7 @@ const startServer = async () => {
       console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║   EMS Server running on http://localhost:${PORT}            ║
+║   EVENTO Server running on http://localhost:${PORT}         ║
 ║                                                           ║
 ║   Health:    http://localhost:${PORT}/api/health            ║
 ║   Auth:      http://localhost:${PORT}/api/auth              ║
