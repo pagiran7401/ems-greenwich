@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { confirmPayment } from '../services/bookings';
+import { generateQRDataURL, downloadQRCode } from '../utils/qrCode';
 
 export default function BookingConfirmPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
@@ -9,6 +10,7 @@ export default function BookingConfirmPage() {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
 
   // Check if coming from Stripe success
   const sessionId = searchParams.get('session_id');
@@ -29,6 +31,10 @@ export default function BookingConfirmPage() {
       await confirmPayment(bookingId, sessionId || `MOCK_${Date.now()}`);
       setIsConfirmed(true);
       toast.success('Payment confirmed! Your booking is complete.');
+      // Generate QR code
+      if (bookingId) {
+        generateQRDataURL(bookingId).then(setQrDataUrl);
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to confirm payment');
     } finally {
@@ -49,6 +55,26 @@ export default function BookingConfirmPage() {
           <p className="text-surface-600 mb-8">
             Your tickets have been booked successfully. You'll receive a confirmation email shortly.
           </p>
+          {/* QR Code Ticket */}
+          {qrDataUrl && (
+            <div className="mb-8 p-6 bg-surface-50 rounded-2xl">
+              <h3 className="text-sm font-semibold text-surface-700 mb-3">Your Ticket QR Code</h3>
+              <div className="inline-block p-3 bg-white rounded-xl shadow-soft border border-surface-100">
+                <img src={qrDataUrl} alt="Ticket QR Code" className="w-40 h-40" />
+              </div>
+              <p className="text-xs text-surface-500 mt-3">
+                Ref: <span className="font-mono font-semibold text-surface-700">{bookingId?.slice(-8).toUpperCase()}</span>
+              </p>
+              <button
+                onClick={() => downloadQRCode(bookingId!, 'event')}
+                className="btn-ghost text-sm mt-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Download QR
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/my-bookings" className="btn-primary">
               View My Bookings

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { connectSocket, disconnectSocket } from '../services/socket';
 import type { UserPublic, LoginInput, RegisterInput, AuthResponse } from '@ems/shared';
 
 interface AuthContextType {
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const response = await api.get<AuthResponse>('/auth/me');
           if (response.data.success && response.data.user) {
             setUser(response.data.user);
+            connectSocket(token);
           }
         } catch (error) {
           localStorage.removeItem(TOKEN_KEY);
@@ -51,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(TOKEN_KEY, response.data.token);
         api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
         setUser(response.data.user);
+        connectSocket(response.data.token);
         toast.success('Login successful!');
         navigate('/dashboard');
       }
@@ -68,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(TOKEN_KEY, response.data.token);
         api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
         setUser(response.data.user);
+        connectSocket(response.data.token);
         toast.success('Registration successful!');
         navigate('/dashboard');
       }
@@ -81,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
     delete api.defaults.headers.common['Authorization'];
+    disconnectSocket();
     setUser(null);
     toast.success('Logged out successfully');
     navigate('/');

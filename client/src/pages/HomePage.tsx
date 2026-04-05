@@ -349,24 +349,50 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-12 bg-surface-900">
         <div className="container-custom">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {/* Logo */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                    <path d="M2 17l10 5 10-5" />
+                    <path d="M2 12l10 5 10-5" />
+                  </svg>
+                </div>
+                <span className="text-white font-display font-bold text-lg tracking-tight">EVENTO</span>
               </div>
-              <span className="text-white font-display font-bold text-lg tracking-tight">EVENTO</span>
+              <p className="text-surface-400 text-sm">The modern platform for discovering, organizing, and experiencing unforgettable events.</p>
             </div>
-            <div className="flex items-center gap-6 text-surface-400 text-sm">
-              <Link to="/events" className="hover:text-white transition-colors">Browse Events</Link>
-              <Link to="/register" className="hover:text-white transition-colors">Get Started</Link>
+            {/* Platform */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-4">Platform</h4>
+              <div className="flex flex-col gap-2 text-surface-400 text-sm">
+                <Link to="/events" className="hover:text-white transition-colors">Browse Events</Link>
+                <Link to="/register" className="hover:text-white transition-colors">Create Account</Link>
+                <Link to="/login" className="hover:text-white transition-colors">Sign In</Link>
+              </div>
             </div>
-            <p className="text-surface-500 text-sm">
-              &copy; 2026 EVENTO. All rights reserved.
-            </p>
+            {/* Company */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-4">Company</h4>
+              <div className="flex flex-col gap-2 text-surface-400 text-sm">
+                <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
+                <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+                <Link to="/faq" className="hover:text-white transition-colors">FAQ</Link>
+              </div>
+            </div>
+            {/* Legal */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-4">Legal</h4>
+              <div className="flex flex-col gap-2 text-surface-400 text-sm">
+                <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+                <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-surface-700 pt-8 text-center">
+            <p className="text-surface-500 text-sm">&copy; 2026 EVENTO. All rights reserved.</p>
           </div>
         </div>
       </footer>

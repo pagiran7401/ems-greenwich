@@ -17,6 +17,11 @@ import ManageTicketsPage from './pages/ManageTicketsPage';
 import AttendeesPage from './pages/AttendeesPage';
 import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
 import ProfilePage from './pages/ProfilePage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import FAQPage from './pages/FAQPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 
 // Layout
 import Layout from './components/Layout';
@@ -44,6 +49,13 @@ function App() {
         {/* Public event routes */}
         <Route path="events" element={<BrowseEventsPage />} />
         <Route path="events/:id" element={<EventDetailPage />} />
+
+        {/* Static pages */}
+        <Route path="about" element={<AboutPage />} />
+        <Route path="contact" element={<ContactPage />} />
+        <Route path="faq" element={<FAQPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
 
         {/* Protected routes - any authenticated user */}
         <Route

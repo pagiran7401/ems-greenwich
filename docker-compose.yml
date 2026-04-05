@@ -39,6 +39,7 @@ services:
     volumes:
       - ./server:/app/server
       - ./shared:/app/shared
+      - ./server/uploads:/app/server/uploads
       - /app/server/node_modules
     depends_on:
       mongodb:

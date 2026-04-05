@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { IBookingWithDetails } from '@ems/shared';
 import { getMyBookings } from '../services/bookings';
+import { generateQRDataURL, downloadQRCode } from '../utils/qrCode';
 
 const categoryConfig: Record<string, { emoji: string; gradient: string }> = {
   music: { emoji: '🎵', gradient: 'from-rose-500 to-pink-600' },
@@ -19,6 +20,14 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<IBookingWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all');
+  const [qrModalBooking, setQrModalBooking] = useState<IBookingWithDetails | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+
+  const showQR = async (booking: IBookingWithDetails) => {
+    const qr = await generateQRDataURL(booking._id);
+    setQrDataUrl(qr);
+    setQrModalBooking(booking);
+  };
 
   useEffect(() => {
     fetchBookings();
@@ -172,13 +181,22 @@ export default function MyBookingsPage() {
                           </div>
                         </div>
 
-                        <div className="text-right">
+                        <div className="text-right flex flex-col items-end gap-2">
                           <p className="text-sm text-surface-500">
                             {booking.quantity}x {booking.ticket?.ticketType}
                           </p>
                           <p className="text-xl font-bold text-surface-900">
                             £{booking.totalAmount.toFixed(2)}
                           </p>
+                          {booking.paymentStatus === 'completed' && (
+                            <button
+                              onClick={(e) => { e.preventDefault(); showQR(booking); }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                              QR Ticket
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -189,6 +207,28 @@ export default function MyBookingsPage() {
           </div>
         )}
       </div>
+
+      {/* QR Code Modal */}
+      {qrModalBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setQrModalBooking(null)}>
+          <div className="card p-8 max-w-sm w-full text-center animate-fade-in-up" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-surface-900 mb-2">Ticket QR Code</h3>
+            <p className="text-sm text-surface-600 mb-4">{(qrModalBooking as any).event?.eventName || 'Event'}</p>
+            <div className="inline-block p-4 bg-white rounded-2xl shadow-soft border border-surface-100">
+              <img src={qrDataUrl} alt="QR Code" className="w-48 h-48" />
+            </div>
+            <div className="mt-4 space-y-1 text-sm text-surface-600">
+              <p>Ticket: <span className="font-medium text-surface-900">{qrModalBooking.ticket?.ticketType}</span></p>
+              <p>Qty: <span className="font-medium text-surface-900">{qrModalBooking.quantity}</span></p>
+              <p>Ref: <span className="font-mono font-semibold text-surface-700">{qrModalBooking._id.slice(-8).toUpperCase()}</span></p>
+            </div>
+            <div className="flex gap-3 mt-6 justify-center">
+              <button onClick={() => downloadQRCode(qrModalBooking._id, 'event')} className="btn-primary">Download</button>
+              <button onClick={() => setQrModalBooking(null)} className="btn-secondary">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { registerSchema, type RegisterInput } from '@ems/shared';
 export default function RegisterPage() {
   const { register: registerUser, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const {
     register,
@@ -177,10 +178,27 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Terms and Conditions */}
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500"
+              />
+              <label htmlFor="terms" className="text-sm text-surface-600">
+                I agree to the{' '}
+                <Link to="/terms" className="text-primary-600 hover:text-primary-500 font-medium">Terms of Service</Link>
+                {' '}and{' '}
+                <Link to="/privacy" className="text-primary-600 hover:text-primary-500 font-medium">Privacy Policy</Link>
+              </label>
+            </div>
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !agreedToTerms}
               className="btn-primary w-full py-3"
             >
               {isSubmitting ? (

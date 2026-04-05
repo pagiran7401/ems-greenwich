@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getNotifications, markAsRead, markAllAsRead, getUnreadCount } from '../services/notifications';
+import { onNotification } from '../services/socket';
 import type { INotification } from '@ems/shared';
 
 function timeAgo(date: Date): string {
@@ -63,11 +64,23 @@ export default function NotificationBell() {
     }
   }, []);
 
-  // Poll for unread count every 30 seconds
+  // Fetch initial unread count and listen for real-time notifications
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+
+    // Listen for real-time notifications via Socket.io
+    const unsubscribe = onNotification((notification: INotification) => {
+      setUnreadCount((prev) => prev + 1);
+      // If dropdown is open, prepend the new notification
+      setNotifications((prev) => [notification, ...prev]);
+    });
+
+    // Fallback polling every 60s in case WebSocket disconnects
+    const interval = setInterval(fetchUnreadCount, 60000);
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, [fetchUnreadCount]);
 
   // Load notifications when dropdown opens

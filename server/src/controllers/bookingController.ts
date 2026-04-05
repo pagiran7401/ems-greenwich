@@ -422,3 +422,32 @@ export const stripeWebhook = async (req: Request, res: Response) => {
     res.status(400).json({ success: false, message: `Webhook Error: ${error.message}` });
   }
 };
+
+// @desc    Get booking by ID (for QR code lookup)
+// @route   GET /api/bookings/:bookingId
+// @access  Private (attendee who owns booking or event organizer)
+export const getBookingById = async (req: Request, res: Response) => {
+  try {
+    const booking = await Booking.findById(req.params.bookingId)
+      .populate('attendeeId', 'firstName lastName email')
+      .populate('eventId', 'eventName eventDate venue organizerId')
+      .populate('ticketId', 'ticketType price');
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    // Allow access if user is the attendee or the event organizer
+    const userId = req.user?._id?.toString();
+    const isAttendee = (booking.attendeeId as any)?._id?.toString() === userId;
+    const isEventOrganizer = (booking.eventId as any)?.organizerId?.toString() === userId;
+
+    if (!isAttendee && !isEventOrganizer) {
+      return res.status(403).json({ success: false, message: 'Not authorized to view this booking' });
+    }
+
+    res.json({ success: true, data: booking });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

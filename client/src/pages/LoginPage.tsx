@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema, type LoginInput } from '@ems/shared';
 
@@ -86,6 +87,21 @@ export default function LoginPage() {
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="h-4 w-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500" />
+                <span className="text-sm text-surface-600">Remember me</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => toast('Password reset feature coming soon!', { icon: '\uD83D\uDD12' })}
+                className="text-sm text-primary-600 hover:text-primary-500 font-medium"
+              >
+                Forgot password?
+              </button>
             </div>
 
             {/* Submit Button */}

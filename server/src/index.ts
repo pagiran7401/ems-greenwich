@@ -1,4 +1,6 @@
 import path from 'path';
+import fs from 'fs';
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -6,6 +8,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 
 import { connectDB } from './config/database';
+import { initializeSocket } from './config/socket';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
@@ -14,12 +17,17 @@ import ticketRoutes from './routes/tickets';
 import bookingRoutes from './routes/bookings';
 import analyticsRoutes from './routes/analytics';
 import notificationRoutes from './routes/notifications';
+import uploadRoutes from './routes/upload';
 
 // Load environment variables from root .env
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
+const httpServer = http.createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Initialize Socket.io
+initializeSocket(httpServer);
 
 // Security middleware
 app.use(helmet());
@@ -35,6 +43,15 @@ app.use(express.urlencoded({ extended: true }));
 // Logging
 app.use(morgan('dev'));
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../uploads/events');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
@@ -43,6 +60,7 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Error handling
 app.use(notFoundHandler);
@@ -54,7 +72,7 @@ const startServer = async () => {
     // Connect to MongoDB
     await connectDB();
 
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
@@ -66,6 +84,7 @@ const startServer = async () => {
 ║   Tickets:   http://localhost:${PORT}/api/tickets           ║
 ║   Bookings:  http://localhost:${PORT}/api/bookings          ║
 ║   Analytics: http://localhost:${PORT}/api/analytics         ║
+║   WebSocket: ws://localhost:${PORT} (Socket.io)            ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
       `);

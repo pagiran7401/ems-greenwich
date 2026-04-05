@@ -176,27 +176,30 @@ export default function BrowseEventsPage() {
     return count;
   }, [filters]);
 
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
   return (
     <div className="min-h-screen bg-surface-50">
       {/* Hero Header */}
-      <div className="bg-gradient-hero py-16 relative overflow-hidden">
+      <div className="bg-gradient-hero py-10 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
         <div className="container-custom relative">
-          <h1 className="text-display-lg text-white mb-4 animate-fade-in-up">
+          <h1 className="text-display-md md:text-display-lg text-white mb-2 md:mb-4 animate-fade-in-up">
             Discover Events
           </h1>
-          <p className="text-primary-100 text-lg max-w-2xl animate-fade-in-up stagger-1">
+          <p className="text-primary-100 text-base md:text-lg max-w-2xl animate-fade-in-up stagger-1">
             Find amazing events happening near you. From concerts to conferences,
             there's something for everyone.
           </p>
         </div>
       </div>
 
-      <div className="container-custom py-8">
+      <div className="container-custom py-6 md:py-8">
         {/* Filters Card */}
-        <div className="card p-6 mb-8 animate-fade-in-up stagger-2">
+        <div className="card p-4 md:p-6 mb-6 md:mb-8 animate-fade-in-up stagger-2">
           {/* Row 1: Search + Sort + Clear */}
-          <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex flex-wrap gap-3 md:gap-4 items-end">
             {/* Search */}
             <div className="flex-1 min-w-[240px]">
               <label className="label">Search Events</label>
@@ -250,8 +253,20 @@ export default function BrowseEventsPage() {
             )}
           </div>
 
+          {/* Mobile Toggle for Filters */}
+          <button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className="mt-4 md:hidden flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            <svg className={`w-4 h-4 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            {filtersOpen ? 'Hide Filters' : 'Show Filters'}
+            {activeFilterCount > 0 && <span className="bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded-full text-xs">{activeFilterCount}</span>}
+          </button>
+
           {/* Row 2: Category Badges */}
-          <div className="mt-5">
+          <div className={`mt-4 md:mt-5 ${filtersOpen ? 'block' : 'hidden md:block'}`}>
             <label className="label mb-2">Category</label>
             <div className="flex flex-wrap gap-2">
               <button
@@ -286,7 +301,7 @@ export default function BrowseEventsPage() {
           </div>
 
           {/* Row 3: Date Presets + Price Presets */}
-          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className={`mt-4 md:mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 ${filtersOpen ? 'block' : 'hidden md:grid'}`}>
             {/* Date Filter */}
             <div>
               <label className="label mb-2">Date Range</label>
@@ -365,11 +380,31 @@ export default function BrowseEventsPage() {
           </div>
         </div>
 
-        {/* Results Info */}
+        {/* Results Info + View Toggle */}
         <div className="flex items-center justify-between mb-6">
-          <p className="text-surface-600">
+          <p className="text-surface-600 text-sm md:text-base">
             <span className="font-semibold text-surface-900">{pagination.total}</span> event{pagination.total !== 1 ? 's' : ''} found
           </p>
+          <div className="flex items-center gap-1 bg-surface-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-700'}`}
+              aria-label="Grid view"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white text-primary-600 shadow-sm' : 'text-surface-500 hover:text-surface-700'}`}
+              aria-label="List view"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Events Grid */}
@@ -401,9 +436,9 @@ export default function BrowseEventsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'flex flex-col gap-4'}>
               {events.map((event, index) => (
-                <EventCard key={event._id} event={event} index={index} />
+                <EventCard key={event._id} event={event} index={index} viewMode={viewMode} />
               ))}
             </div>
 
@@ -442,7 +477,7 @@ export default function BrowseEventsPage() {
   );
 }
 
-function EventCard({ event, index }: { event: IEvent; index: number }) {
+function EventCard({ event, index, viewMode = 'grid' }: { event: IEvent; index: number; viewMode?: 'grid' | 'list' }) {
   const config = categoryConfig[event.category] || categoryConfig.other;
   const eventWithPrices = event as IEvent & { minPrice?: number | null; maxPrice?: number | null };
 
@@ -474,6 +509,57 @@ function EventCard({ event, index }: { event: IEvent; index: number }) {
   };
 
   const priceDisplay = formatPrice();
+
+  if (viewMode === 'list') {
+    return (
+      <Link
+        to={`/events/${event._id}`}
+        className="card-interactive group overflow-hidden animate-fade-in-up flex flex-col sm:flex-row"
+        style={{ animationDelay: `${index * 0.03}s` }}
+      >
+        {/* Image */}
+        <div className={`relative w-full sm:w-48 h-32 sm:h-auto bg-gradient-to-br ${config.gradient} overflow-hidden shrink-0`}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-5xl opacity-30">{config.emoji}</span>
+          </div>
+          <div className="absolute top-2 left-2 bg-white rounded-lg p-1.5 text-center shadow-soft min-w-[40px]">
+            <div className="text-lg font-bold text-surface-900 leading-none">{dateInfo.day}</div>
+            <div className="text-[10px] font-semibold text-surface-500 uppercase">{dateInfo.month}</div>
+          </div>
+        </div>
+        {/* Content */}
+        <div className="p-4 flex-1 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${config.color}`}>
+                {config.emoji} {event.category}
+              </span>
+              {priceDisplay && (
+                <span className={`text-sm font-semibold ${priceDisplay === 'Free' || priceDisplay === 'Free+' ? 'text-emerald-600' : 'text-surface-700'}`}>
+                  {priceDisplay}
+                </span>
+              )}
+            </div>
+            <h3 className="text-base font-semibold text-surface-900 group-hover:text-primary-600 transition-colors line-clamp-1">{event.eventName}</h3>
+          </div>
+          <div className="flex items-center gap-4 mt-2 text-sm text-surface-500">
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              {dateInfo.full} at {event.eventTime}
+            </span>
+            <span className="flex items-center gap-1 truncate">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              {event.venue}
+            </span>
+            <span className="hidden sm:flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              {event.capacity}
+            </span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link
