@@ -6,6 +6,7 @@ import {
   updateEvent,
   deleteEvent,
   getOrganizerEvents,
+  duplicateEvent,
 } from '../controllers/eventController';
 import { authenticate, isOrganizer } from '../middleware/auth';
 import { validate, validateQuery } from '../middleware/validate';
@@ -39,6 +40,9 @@ router.post('/', authenticate, isOrganizer, validate(createEventSchema), createE
 
 // PUT /api/events/:id - Update event (Organizer only, own events)
 router.put('/:id', authenticate, isOrganizer, validate(updateEventSchema), updateEvent);
+
+// POST /api/events/:id/duplicate - Duplicate event (Organizer only, own events)
+router.post('/:id/duplicate', authenticate, isOrganizer, duplicateEvent);
 
 // DELETE /api/events/:id - Delete event (Organizer only, own events)
 router.delete('/:id', authenticate, isOrganizer, deleteEvent);

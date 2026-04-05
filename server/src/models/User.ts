@@ -43,6 +43,14 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       trim: true,
     },
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -51,6 +59,8 @@ const userSchema = new Schema<IUserDocument>(
         ret._id = ret._id.toString();
         delete ret.password;
         delete ret.__v;
+        delete ret.failedLoginAttempts;
+        delete ret.lockUntil;
         return ret;
       },
     },

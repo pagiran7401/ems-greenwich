@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { IBookingWithDetails } from '@ems/shared';
-import { getMyBookings } from '../services/bookings';
+import { getMyBookings, cancelBooking } from '../services/bookings';
 import { generateQRDataURL, downloadQRCode } from '../utils/qrCode';
+import { downloadPDFTicket } from '../utils/pdfTicket';
 
 const categoryConfig: Record<string, { emoji: string; gradient: string }> = {
   music: { emoji: '🎵', gradient: 'from-rose-500 to-pink-600' },
@@ -27,6 +28,17 @@ export default function MyBookingsPage() {
     const qr = await generateQRDataURL(booking._id);
     setQrDataUrl(qr);
     setQrModalBooking(booking);
+  };
+
+  const handleCancel = async (bookingId: string, eventName: string) => {
+    if (!confirm(`Cancel your booking for "${eventName}"? This cannot be undone.`)) return;
+    try {
+      await cancelBooking(bookingId);
+      toast.success('Booking cancelled successfully');
+      fetchBookings();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to cancel booking');
+    }
   };
 
   useEffect(() => {
@@ -189,13 +201,46 @@ export default function MyBookingsPage() {
                             £{booking.totalAmount.toFixed(2)}
                           </p>
                           {booking.paymentStatus === 'completed' && (
-                            <button
-                              onClick={(e) => { e.preventDefault(); showQR(booking); }}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
-                              QR Ticket
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={(e) => { e.preventDefault(); showQR(booking); }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                QR Ticket
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  downloadPDFTicket({
+                                    bookingId: booking._id,
+                                    eventName: event.eventName,
+                                    eventDate: formatDate(event.eventDate),
+                                    eventTime: event.eventTime,
+                                    venue: event.venue,
+                                    ticketType: booking.ticket?.ticketType || 'General',
+                                    quantity: booking.quantity,
+                                    totalAmount: booking.totalAmount,
+                                    attendeeName: `${booking.attendee?.firstName || ''} ${booking.attendee?.lastName || ''}`.trim() || 'Attendee',
+                                  });
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                PDF
+                              </button>
+                              {!isPast && (
+                                <button
+                                  onClick={(e) => { e.preventDefault(); handleCancel(booking._id, event?.eventName || 'this event'); }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          {booking.paymentStatus === 'refunded' && (
+                            <span className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg bg-surface-100 text-surface-500">Cancelled</span>
                           )}
                         </div>
                       </div>

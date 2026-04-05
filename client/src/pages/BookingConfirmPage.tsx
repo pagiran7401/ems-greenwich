@@ -104,11 +104,35 @@ export default function BookingConfirmPage() {
         </p>
 
         {!fromStripe && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-            <p className="text-sm text-amber-800">
-              <strong>Test Mode:</strong> This is a mock payment. No real charges will be made.
-            </p>
-          </div>
+          <>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-amber-800">
+                <strong>Test Mode:</strong> This is a mock payment. No real charges will be made.
+              </p>
+            </div>
+
+            {/* Mock Payment Form */}
+            <div className="text-left space-y-4 mb-6">
+              <div>
+                <label className="label">Cardholder Name</label>
+                <input type="text" className="input" placeholder="John Doe" defaultValue="Test User" />
+              </div>
+              <div>
+                <label className="label">Card Number</label>
+                <input type="text" className="input font-mono" placeholder="4242 4242 4242 4242" defaultValue="4242 4242 4242 4242" maxLength={19} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label">Expiry Date</label>
+                  <input type="text" className="input" placeholder="MM/YY" defaultValue="12/28" maxLength={5} />
+                </div>
+                <div>
+                  <label className="label">CVV</label>
+                  <input type="text" className="input" placeholder="123" defaultValue="123" maxLength={4} />
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         <button

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,27 +6,61 @@ import toast from 'react-hot-toast';
 import { createEventSchema, type CreateEventInput, eventCategories } from '@ems/shared';
 import { createEvent } from '../services/events';
 
+const DRAFT_KEY = 'evento_draft_event';
+
 export default function CreateEventPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  // Try to restore saved draft
+  const savedDraft = (() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  })();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<CreateEventInput>({
     resolver: zodResolver(createEventSchema),
-    defaultValues: {
+    defaultValues: savedDraft || {
       status: 'draft',
       category: 'other',
       capacity: 100,
     },
   });
 
+  // Auto-save draft every 5 seconds
+  const formValues = watch();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formValues.eventName || formValues.description) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(formValues));
+        if (!draftRestored && savedDraft) {
+          setDraftRestored(true);
+        }
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [formValues]);
+
+  // Show restored notification once
+  useEffect(() => {
+    if (savedDraft?.eventName) {
+      toast('Draft restored from auto-save', { icon: '\uD83D\uDCBE' });
+    }
+  }, []);
+
   const onSubmit = async (data: CreateEventInput) => {
     setIsSubmitting(true);
     try {
       const event = await createEvent(data);
+      localStorage.removeItem(DRAFT_KEY);
       toast.success('Event created successfully!');
       navigate('/my-events');
     } catch (error: any) {

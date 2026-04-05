@@ -8,6 +8,7 @@ import {
   checkInAttendee,
   stripeWebhook,
   getBookingById,
+  cancelBooking,
 } from '../controllers/bookingController';
 
 const router = Router();
@@ -29,6 +30,9 @@ router.get('/event/:eventId/attendees', authenticate, isOrganizer, getEventAtten
 
 // Check in attendee (organizer only)
 router.put('/checkin/:bookingId', authenticate, isOrganizer, checkInAttendee);
+
+// Cancel booking (attendee only)
+router.patch('/:bookingId/cancel', authenticate, cancelBooking);
 
 // Get booking by ID (for QR code lookup) - MUST be after named routes
 router.get('/:bookingId', authenticate, getBookingById);

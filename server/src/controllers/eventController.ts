@@ -432,3 +432,66 @@ export const deleteEvent = async (
     next(error);
   }
 };
+
+// @desc    Duplicate an event
+// @route   POST /api/events/:id/duplicate
+// @access  Private (Organizer, own events only)
+export const duplicateEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?._id;
+    const original = await Event.findById(req.params.id);
+
+    if (!original) {
+      throw new AppError('Event not found', 404);
+    }
+
+    if (original.organizerId.toString() !== userId?.toString()) {
+      throw new AppError('Not authorized to duplicate this event', 403);
+    }
+
+    // Create a copy as draft with a new date (1 month from now)
+    const futureDate = new Date();
+    futureDate.setMonth(futureDate.getMonth() + 1);
+
+    const duplicated = await Event.create({
+      organizerId: userId,
+      eventName: `${original.eventName} (Copy)`,
+      description: original.description,
+      eventDate: futureDate,
+      eventTime: original.eventTime,
+      endTime: original.endTime,
+      venue: original.venue,
+      address: original.address,
+      category: original.category,
+      eventImage: original.eventImage,
+      capacity: original.capacity,
+      status: 'draft',
+    });
+
+    // Also duplicate ticket types
+    const tickets = await Ticket.find({ eventId: original._id, isActive: true });
+    for (const ticket of tickets) {
+      await Ticket.create({
+        eventId: duplicated._id,
+        ticketType: ticket.ticketType,
+        price: ticket.price,
+        quantityAvailable: ticket.quantityAvailable,
+        quantitySold: 0,
+        description: ticket.description,
+        isActive: true,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Event duplicated successfully',
+      data: duplicated,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

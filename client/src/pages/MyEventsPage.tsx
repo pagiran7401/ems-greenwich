@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { IEvent } from '@ems/shared';
-import { getMyEvents, deleteEvent } from '../services/events';
+import { getMyEvents, deleteEvent, duplicateEvent } from '../services/events';
 
 export default function MyEventsPage() {
   const [events, setEvents] = useState<IEvent[]>([]);
@@ -33,6 +33,16 @@ export default function MyEventsPage() {
       setEvents(events.filter((e) => e._id !== id));
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to delete event');
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const newEvent = await duplicateEvent(id);
+      toast.success('Event duplicated as draft!');
+      setEvents([newEvent, ...events]);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to duplicate event');
     }
   };
 
@@ -103,7 +113,7 @@ export default function MyEventsPage() {
       ) : (
         <div className="space-y-4">
           {filteredEvents.map((event) => (
-            <EventRow key={event._id} event={event} onDelete={handleDelete} />
+            <EventRow key={event._id} event={event} onDelete={handleDelete} onDuplicate={handleDuplicate} />
           ))}
         </div>
       )}
@@ -145,7 +155,7 @@ function StatCard({
   );
 }
 
-function EventRow({ event, onDelete }: { event: IEvent; onDelete: (id: string, name: string) => void }) {
+function EventRow({ event, onDelete, onDuplicate }: { event: IEvent; onDelete: (id: string, name: string) => void; onDuplicate: (id: string) => void }) {
   const statusColors = {
     draft: 'bg-yellow-100 text-yellow-800',
     published: 'bg-green-100 text-green-800',
@@ -206,6 +216,12 @@ function EventRow({ event, onDelete }: { event: IEvent; onDelete: (id: string, n
           >
             Edit
           </Link>
+          <button
+            onClick={() => onDuplicate(event._id)}
+            className="btn-ghost text-sm"
+          >
+            Duplicate
+          </button>
           <button
             onClick={() => onDelete(event._id, event.eventName)}
             className="btn-danger text-sm"

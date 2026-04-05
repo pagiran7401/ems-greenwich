@@ -186,6 +186,17 @@ export const confirmPayment = async (req: Request, res: Response) => {
       return res.json({ success: true, message: 'Payment already completed', data: booking });
     }
 
+    // 10% random payment failure simulation (mock mode only)
+    if (!transactionId?.startsWith('cs_') && Math.random() < 0.1) {
+      booking.paymentStatus = 'failed';
+      await booking.save();
+      return res.status(402).json({
+        success: false,
+        message: 'Payment declined. Please try again.',
+        data: booking,
+      });
+    }
+
     // Update booking status
     booking.paymentStatus = 'completed';
     if (transactionId) {
@@ -447,6 +458,63 @@ export const getBookingById = async (req: Request, res: Response) => {
     }
 
     res.json({ success: true, data: booking });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Cancel booking
+// @route   PATCH /api/bookings/:bookingId/cancel
+// @access  Private (attendee who owns the booking)
+export const cancelBooking = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    const booking = await Booking.findById(req.params.bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    // Only the attendee who made the booking can cancel
+    if (booking.attendeeId.toString() !== userId.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to cancel this booking' });
+    }
+
+    // Can only cancel completed bookings
+    if (booking.paymentStatus !== 'completed') {
+      return res.status(400).json({ success: false, message: 'Only completed bookings can be cancelled' });
+    }
+
+    // Check if event is in the future
+    const event = await Event.findById(booking.eventId);
+    if (event && new Date(event.eventDate) < new Date()) {
+      return res.status(400).json({ success: false, message: 'Cannot cancel bookings for past events' });
+    }
+
+    // Update booking status
+    booking.paymentStatus = 'refunded';
+    await booking.save();
+
+    // Release tickets back to available pool
+    const ticket = await Ticket.findById(booking.ticketId);
+    if (ticket) {
+      ticket.quantitySold = Math.max(0, ticket.quantitySold - booking.quantity);
+      await ticket.save();
+    }
+
+    // Notify user
+    await createNotification({
+      userId: userId.toString(),
+      message: `Your booking for ${event?.eventName || 'an event'} has been cancelled and refunded.`,
+      type: 'general',
+      relatedEventId: booking.eventId.toString(),
+      relatedBookingId: booking._id.toString(),
+    });
+
+    res.json({ success: true, message: 'Booking cancelled successfully', data: booking });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

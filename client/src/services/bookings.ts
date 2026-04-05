@@ -46,3 +46,8 @@ export const checkInAttendee = async (bookingId: string): Promise<{ checkInStatu
   const response = await api.put<ApiResponse<{ checkInStatus: string }>>(`/bookings/checkin/${bookingId}`);
   return response.data.data;
 };
+
+// Cancel booking (attendee)
+export const cancelBooking = async (bookingId: string): Promise<void> => {
+  await api.patch(`/bookings/${bookingId}/cancel`);
+};

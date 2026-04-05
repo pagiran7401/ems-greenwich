@@ -52,3 +52,9 @@ export const updateEvent = async (id: string, data: UpdateEventInput): Promise<I
 export const deleteEvent = async (id: string): Promise<void> => {
   await api.delete(`/events/${id}`);
 };
+
+// Duplicate event (protected - organizer only)
+export const duplicateEvent = async (id: string): Promise<IEvent> => {
+  const response = await api.post<ApiResponse<IEvent>>(`/events/${id}/duplicate`);
+  return response.data.data!;
+};
