@@ -48,3 +48,10 @@ docker/data/
 
 # Uploads (if local storage)
 uploads/
+
+# build artifacts
+client/vite.config.d.ts
+client/vite.config.js
+
+# local debug scripts
+server/src/scripts/verifyOrgState.ts
