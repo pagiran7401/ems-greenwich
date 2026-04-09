@@ -16,8 +16,9 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   }
 
   if (requiredRole && user?.userType !== requiredRole) {
-    // User doesn't have the required role
-    return <Navigate to="/dashboard" replace />;
+    // User doesn't have the required role — send them to a page they can actually see
+    const fallback = user?.userType === 'organizer' ? '/dashboard' : '/my-bookings';
+    return <Navigate to={fallback} replace />;
   }
 
   return <>{children}</>;

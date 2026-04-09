@@ -23,10 +23,16 @@ export const createEvent = async (
 ): Promise<void> => {
   try {
     const organizerId = req.user!._id;
+    const organizationId = req.user!.organizationId;
+
+    if (!organizationId) {
+      throw new AppError('Organizer is not attached to an organization', 400);
+    }
 
     const event = await Event.create({
       ...req.body,
       organizerId,
+      organizationId,
       eventDate: new Date(req.body.eventDate),
     });
 
@@ -300,9 +306,14 @@ export const getOrganizerEvents = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const organizerId = req.user!._id;
+    const organizationId = req.user!.organizationId;
 
-    const events = await Event.find({ organizerId })
+    if (!organizationId) {
+      res.status(200).json({ success: true, data: [] });
+      return;
+    }
+
+    const events = await Event.find({ organizationId })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -324,7 +335,7 @@ export const updateEvent = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const organizerId = req.user!._id;
+    const organizationId = req.user!.organizationId;
 
     // Find event and verify ownership
     const event = await Event.findById(req.params.id);
@@ -333,7 +344,7 @@ export const updateEvent = async (
       throw new AppError('Event not found', 404);
     }
 
-    if (event.organizerId.toString() !== organizerId.toString()) {
+    if (!organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       throw new AppError('Not authorized to update this event', 403);
     }
 
@@ -407,7 +418,7 @@ export const deleteEvent = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const organizerId = req.user!._id;
+    const organizationId = req.user!.organizationId;
 
     // Find event and verify ownership
     const event = await Event.findById(req.params.id);
@@ -416,7 +427,7 @@ export const deleteEvent = async (
       throw new AppError('Event not found', 404);
     }
 
-    if (event.organizerId.toString() !== organizerId.toString()) {
+    if (!organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       throw new AppError('Not authorized to delete this event', 403);
     }
 
@@ -443,13 +454,14 @@ export const duplicateEvent = async (
 ): Promise<void> => {
   try {
     const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
     const original = await Event.findById(req.params.id);
 
     if (!original) {
       throw new AppError('Event not found', 404);
     }
 
-    if (original.organizerId.toString() !== userId?.toString()) {
+    if (!organizationId || original.organizationId?.toString() !== organizationId.toString()) {
       throw new AppError('Not authorized to duplicate this event', 403);
     }
 
@@ -459,6 +471,7 @@ export const duplicateEvent = async (
 
     const duplicated = await Event.create({
       organizerId: userId,
+      organizationId,
       eventName: `${original.eventName} (Copy)`,
       description: original.description,
       eventDate: futureDate,

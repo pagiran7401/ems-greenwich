@@ -25,7 +25,7 @@ export default function AboutPage() {
           <div className="card p-8 animate-fade-in-up stagger-1">
             <h2 className="text-display-sm text-surface-900 mb-4">Project Background</h2>
             <p className="text-surface-600 leading-relaxed mb-4">
-              EVENTO was developed as an MSc dissertation project at the{' '}
+              EVENTO was developed as a final year project for BSc in Computer Science at the{' '}
               <span className="font-semibold text-surface-900">University of Greenwich</span>, London.
               The project demonstrates a production-quality full-stack web application with modern
               technologies and best practices in software engineering.
@@ -43,7 +43,7 @@ export default function AboutPage() {
               <div>
                 <h3 className="text-xl font-semibold text-surface-900">Pagiran Rabichandran</h3>
                 <p className="text-surface-600">Developer & Creator</p>
-                <p className="text-sm text-surface-500 mt-1">MSc Data Science, University of Greenwich</p>
+                <p className="text-sm text-surface-500 mt-1">BSc Computer Science, University of Greenwich</p>
               </div>
             </div>
           </div>

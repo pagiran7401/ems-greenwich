@@ -18,6 +18,7 @@ import bookingRoutes from './routes/bookings';
 import analyticsRoutes from './routes/analytics';
 import notificationRoutes from './routes/notifications';
 import uploadRoutes from './routes/upload';
+import userManagementRoutes from './routes/userManagement';
 
 // Load environment variables from root .env
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -61,6 +62,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/users', userManagementRoutes);
 
 // Error handling
 app.use(notFoundHandler);

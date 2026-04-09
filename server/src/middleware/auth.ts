@@ -14,6 +14,8 @@ declare global {
 interface JwtPayload {
   userId: string;
   userType: string;
+  organizationId?: string | null;
+  organizerRole?: 'admin' | 'member' | null;
   iat: number;
   exp: number;
 }
@@ -93,6 +95,22 @@ export const isOrganizer = (
   next();
 };
 
+// Check if user is an admin of their organization
+export const isOrgAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (req.user?.organizerRole !== 'admin') {
+    res.status(403).json({
+      success: false,
+      message: 'Access denied. Organization admin role required.',
+    });
+    return;
+  }
+  next();
+};
+
 // Check if user is an attendee
 export const isAttendee = (
   req: Request,
@@ -115,6 +133,8 @@ export const generateToken = (user: IUserDocument): string => {
     {
       userId: user._id.toString(),
       userType: user.userType,
+      organizationId: user.organizationId ? user.organizationId.toString() : null,
+      organizerRole: user.organizerRole ?? null,
     },
     JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }

@@ -1,9 +1,10 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import type { IUser, UserType } from '@ems/shared';
 
 // Extend IUser for Mongoose document
-export interface IUserDocument extends Omit<IUser, '_id'>, Document {
+export interface IUserDocument extends Omit<IUser, '_id' | 'organizationId'>, Document {
+  organizationId?: Types.ObjectId | null;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -12,7 +13,6 @@ const userSchema = new Schema<IUserDocument>(
     email: {
       type: String,
       required: [true, 'Email is required'],
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -43,24 +43,38 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       trim: true,
     },
-    failedLoginAttempts: {
-      type: Number,
-      default: 0,
-    },
-    lockUntil: {
-      type: Date,
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
       default: null,
+      index: true,
+    },
+    organizerRole: {
+      type: String,
+      enum: ['admin', 'member', null],
+      default: null,
+    },
+    customRoleLabel: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: [50, 'Custom role label cannot exceed 50 characters'],
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
     timestamps: true,
     toJSON: {
-      transform: (_doc, ret) => {
+      transform: (_doc: any, ret: any) => {
         ret._id = ret._id.toString();
+        if (ret.organizationId) {
+          ret.organizationId = ret.organizationId.toString();
+        }
         delete ret.password;
         delete ret.__v;
-        delete ret.failedLoginAttempts;
-        delete ret.lockUntil;
         return ret;
       },
     },
@@ -83,8 +97,8 @@ userSchema.methods.comparePassword = async function (
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Index for performance
-userSchema.index({ email: 1 });
+// Indexes for performance
+userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ userType: 1 });
 
 export const User = mongoose.model<IUserDocument>('User', userSchema);

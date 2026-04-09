@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { registerSchema, type RegisterInput } from '@ems/shared';
 
@@ -9,6 +10,8 @@ export default function RegisterPage() {
   const { register: registerUser, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -144,14 +147,24 @@ export default function RegisterPage() {
               <label htmlFor="password" className="label">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                {...register('password')}
-                className={`input ${errors.password ? 'input-error' : ''}`}
-                placeholder="Create a strong password"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  {...register('password')}
+                  className={`input pr-11 ${errors.password ? 'input-error' : ''}`}
+                  placeholder="Create a strong password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-surface-500 hover:text-surface-700 focus:outline-none focus:text-primary-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
@@ -165,14 +178,24 @@ export default function RegisterPage() {
               <label htmlFor="confirmPassword" className="label">
                 Confirm password
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register('confirmPassword')}
-                className={`input ${errors.confirmPassword ? 'input-error' : ''}`}
-                placeholder="Confirm your password"
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  {...register('confirmPassword')}
+                  className={`input pr-11 ${errors.confirmPassword ? 'input-error' : ''}`}
+                  placeholder="Confirm your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-surface-500 hover:text-surface-700 focus:outline-none focus:text-primary-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
               )}

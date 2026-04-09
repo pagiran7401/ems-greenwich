@@ -9,6 +9,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const isOrganizer = user?.userType === 'organizer';
+  const isOrgAdmin = isOrganizer && user?.organizerRole === 'admin';
   const isHomePage = location.pathname === '/';
 
   useEffect(() => {
@@ -67,20 +68,18 @@ export default function Navbar() {
               Browse Events
               {activeIndicator('/events')}
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated && !isOrganizer && (
+              <Link to="/my-bookings" className={navLinkClass('/my-bookings')}>
+                My Bookings
+                {activeIndicator('/my-bookings')}
+              </Link>
+            )}
+            {isAuthenticated && isOrganizer && (
               <>
                 <Link to="/dashboard" className={navLinkClass('/dashboard')}>
                   Dashboard
                   {activeIndicator('/dashboard')}
                 </Link>
-                <Link to="/my-bookings" className={navLinkClass('/my-bookings')}>
-                  My Bookings
-                  {activeIndicator('/my-bookings')}
-                </Link>
-              </>
-            )}
-            {isAuthenticated && isOrganizer && (
-              <>
                 <Link to="/my-events" className={navLinkClass('/my-events')}>
                   My Events
                   {activeIndicator('/my-events')}
@@ -89,6 +88,12 @@ export default function Navbar() {
                   Analytics
                   {activeIndicator('/analytics')}
                 </Link>
+                {isOrgAdmin && (
+                  <Link to="/team" className={navLinkClass('/team')}>
+                    Team
+                    {activeIndicator('/team')}
+                  </Link>
+                )}
               </>
             )}
           </div>
@@ -187,7 +192,18 @@ export default function Navbar() {
               >
                 Browse Events
               </Link>
-              {isAuthenticated && (
+              {isAuthenticated && !isOrganizer && (
+                <Link
+                  to="/my-bookings"
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Bookings
+                </Link>
+              )}
+              {isAuthenticated && isOrganizer && (
                 <>
                   <Link
                     to="/dashboard"
@@ -199,45 +215,43 @@ export default function Navbar() {
                     Dashboard
                   </Link>
                   <Link
-                    to="/my-bookings"
+                    to="/my-events"
                     className={`px-4 py-2 rounded-lg transition-colors ${
                       isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    My Bookings
+                    My Events
                   </Link>
-                  {isOrganizer && (
-                    <>
-                      <Link
-                        to="/my-events"
-                        className={`px-4 py-2 rounded-lg transition-colors ${
-                          isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
-                        }`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        My Events
-                      </Link>
-                      <Link
-                        to="/analytics"
-                        className={`px-4 py-2 rounded-lg transition-colors ${
-                          isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
-                        }`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Analytics
-                      </Link>
-                      <Link
-                        to="/create-event"
-                        className={`px-4 py-2 rounded-lg transition-colors ${
-                          isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
-                        }`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Create Event
-                      </Link>
-                    </>
+                  <Link
+                    to="/analytics"
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Analytics
+                  </Link>
+                  {isOrgAdmin && (
+                    <Link
+                      to="/team"
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
+                      }`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Team
+                    </Link>
                   )}
+                  <Link
+                    to="/create-event"
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      isHomePage && !scrolled ? 'text-white hover:bg-white/10' : 'hover:bg-surface-100'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Create Event
+                  </Link>
                 </>
               )}
             </div>

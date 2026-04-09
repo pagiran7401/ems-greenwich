@@ -18,7 +18,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f"
+    "docker:logs": "docker compose logs -f",
+    "seed:demo": "npm run seed:demo -w server"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",

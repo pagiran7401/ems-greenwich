@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/evento_db';
-
 export const connectDB = async (): Promise<void> => {
+  // Read the URI at call time, not at module import, so dotenv.config() has run first.
+  const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/evento_db';
   try {
     const conn = await mongoose.connect(MONGODB_URI);
     console.log(`✓ MongoDB Connected: ${conn.connection.host}`);

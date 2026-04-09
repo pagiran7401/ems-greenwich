@@ -312,14 +312,14 @@ export const getMyBookings = async (req: Request, res: Response) => {
 export const getEventAttendees = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
 
     // Check event ownership
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
-    if (event.organizerId.toString() !== userId?.toString()) {
+    if (!organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to view attendees' });
     }
 
@@ -362,7 +362,7 @@ export const getEventAttendees = async (req: Request, res: Response) => {
 export const checkInAttendee = async (req: Request, res: Response) => {
   try {
     const { bookingId } = req.params;
-    const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
 
     const booking = await Booking.findById(bookingId).populate('eventId');
     if (!booking) {
@@ -371,7 +371,7 @@ export const checkInAttendee = async (req: Request, res: Response) => {
 
     // Check event ownership
     const event = await Event.findById(booking.eventId);
-    if (!event || event.organizerId.toString() !== userId?.toString()) {
+    if (!event || !organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to check in attendees' });
     }
 
@@ -441,17 +441,19 @@ export const getBookingById = async (req: Request, res: Response) => {
   try {
     const booking = await Booking.findById(req.params.bookingId)
       .populate('attendeeId', 'firstName lastName email')
-      .populate('eventId', 'eventName eventDate venue organizerId')
+      .populate('eventId', 'eventName eventDate venue organizerId organizationId')
       .populate('ticketId', 'ticketType price');
 
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    // Allow access if user is the attendee or the event organizer
+    // Allow access if user is the attendee or a member of the event's organization
     const userId = req.user?._id?.toString();
+    const userOrgId = req.user?.organizationId?.toString();
     const isAttendee = (booking.attendeeId as any)?._id?.toString() === userId;
-    const isEventOrganizer = (booking.eventId as any)?.organizerId?.toString() === userId;
+    const eventOrgId = (booking.eventId as any)?.organizationId?.toString();
+    const isEventOrganizer = !!userOrgId && eventOrgId === userOrgId;
 
     if (!isAttendee && !isEventOrganizer) {
       return res.status(403).json({ success: false, message: 'Not authorized to view this booking' });

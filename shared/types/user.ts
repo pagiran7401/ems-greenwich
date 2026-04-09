@@ -2,6 +2,8 @@
 
 export type UserType = 'organizer' | 'attendee';
 
+export type OrganizerRole = 'admin' | 'member';
+
 export interface IUser {
   _id: string;
   email: string;
@@ -10,6 +12,19 @@ export interface IUser {
   firstName: string;
   lastName: string;
   phone?: string;
+  organizationId?: string | null;
+  organizerRole?: OrganizerRole | null;
+  customRoleLabel?: string;
+  isActive?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IOrganization {
+  _id: string;
+  name: string;
+  ownerId: string;
+  customRoles: string[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -15,6 +15,7 @@ export type EventCategory =
 export interface IEvent {
   _id: string;
   organizerId: string;
+  organizationId: string;
   eventName: string;
   description: string;
   eventDate: Date;

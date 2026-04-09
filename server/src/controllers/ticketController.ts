@@ -8,7 +8,7 @@ import { createTicketSchema, updateTicketSchema } from '@ems/shared';
 export const createTicket = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
 
     // Validate input
     const validation = createTicketSchema.safeParse(req.body);
@@ -26,7 +26,7 @@ export const createTicket = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
 
-    if (event.organizerId.toString() !== userId?.toString()) {
+    if (!organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to add tickets to this event' });
     }
 
@@ -75,7 +75,7 @@ export const getEventTickets = async (req: Request, res: Response) => {
 export const updateTicket = async (req: Request, res: Response) => {
   try {
     const { ticketId } = req.params;
-    const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
 
     // Validate input
     const validation = updateTicketSchema.safeParse(req.body);
@@ -94,7 +94,7 @@ export const updateTicket = async (req: Request, res: Response) => {
     }
 
     const event = await Event.findById(ticket.eventId);
-    if (!event || event.organizerId.toString() !== userId?.toString()) {
+    if (!event || !organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to update this ticket' });
     }
 
@@ -117,7 +117,7 @@ export const updateTicket = async (req: Request, res: Response) => {
 export const deleteTicket = async (req: Request, res: Response) => {
   try {
     const { ticketId } = req.params;
-    const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
 
     // Find ticket
     const ticket = await Ticket.findById(ticketId);
@@ -127,7 +127,7 @@ export const deleteTicket = async (req: Request, res: Response) => {
 
     // Check ownership
     const event = await Event.findById(ticket.eventId);
-    if (!event || event.organizerId.toString() !== userId?.toString()) {
+    if (!event || !organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this ticket' });
     }
 

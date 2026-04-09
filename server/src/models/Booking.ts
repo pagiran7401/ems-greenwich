@@ -55,7 +55,6 @@ const bookingSchema = new Schema<IBookingDocument>(
     },
     transactionId: {
       type: String,
-      sparse: true,
     },
   },
   {
@@ -76,7 +75,7 @@ const bookingSchema = new Schema<IBookingDocument>(
 // Compound indexes for common queries
 bookingSchema.index({ attendeeId: 1, paymentStatus: 1 });
 bookingSchema.index({ eventId: 1, paymentStatus: 1 });
-bookingSchema.index({ transactionId: 1 });
+bookingSchema.index({ transactionId: 1 }, { sparse: true });
 
 export const Booking = mongoose.model<IBookingDocument>('Booking', bookingSchema);
 

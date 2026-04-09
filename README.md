@@ -2,6 +2,61 @@
 
 EVENTO is a full-stack event management platform built with the MERN stack and TypeScript. It provides a complete solution for organising, discovering, and booking events — from creation and ticket management through to attendee check-in on the day. Organisers can set up events with multiple ticket tiers (free or paid), track sales through a visual analytics dashboard, and manage attendees with check-in functionality. Attendees can browse and filter events by category, date, and price, book tickets with a streamlined checkout flow, and receive in-app notifications for booking confirmations and event updates. The entire application runs in Docker containers with a shared type system between frontend and backend, ensuring consistency across the stack.
 
+## Quick Start
+
+For a collaborator cloning this repo, the fastest path from zero to a running app:
+
+```bash
+# 1. Clone
+git clone https://github.com/pagiran7401/ems-greenwich.git
+cd ems-greenwich
+
+# 2. Install workspace dependencies (root + client + server + shared)
+npm install
+
+# 3. Copy environment defaults
+cp .env.example .env
+
+# 4. Start MongoDB in Docker (Docker Desktop must be running)
+#    This starts ONLY the database — the server and client are behind
+#    the "full" profile and will NOT start with a plain `up`.
+docker compose up -d
+
+# 5. In one terminal: start the server and client concurrently
+npm run dev
+
+# 6. In another terminal: seed the demo accounts (idempotent — safe to re-run)
+npm run seed:demo
+```
+
+Then open **[http://localhost:5173](http://localhost:5173)** and log in with one of the demo accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Organiser (Admin) | `pagiran@evento.com` | `Pagiran123!` |
+| Member (Organiser team) | `pagiran+member@evento.com` | `Member123!` |
+| Attendee | `attendee@evento.com` | `Attendee123!` |
+
+In development mode, the login page shows these three accounts as click-to-autofill cards below the form (with a copy-password button), so you don't have to type them.
+
+### Port layout
+
+| Port | Service |
+|---|---|
+| `5173` | Vite dev server (React client) |
+| `5001` | Express API + Socket.io |
+| `27017` | MongoDB |
+
+### Running everything in Docker (full profile)
+
+If you'd rather run the server and client in containers alongside MongoDB (no local Node process), use the `full` profile:
+
+```bash
+docker compose --profile full up -d --build
+```
+
+This starts `evento-mongodb`, `evento-server`, and `evento-client` together. You can still run `npm run seed:demo` from the host — it talks to the container on `localhost:27017`.
+
 ## Why EVENTO?
 
 - **Two-role system** — Organisers create and manage events; Attendees discover and book them. Each role gets a tailored dashboard experience.

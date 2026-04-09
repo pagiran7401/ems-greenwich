@@ -16,6 +16,7 @@ import BookingConfirmPage from './pages/BookingConfirmPage';
 import ManageTicketsPage from './pages/ManageTicketsPage';
 import AttendeesPage from './pages/AttendeesPage';
 import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
+import TeamPage from './pages/TeamPage';
 import ProfilePage from './pages/ProfilePage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
@@ -57,11 +58,11 @@ function App() {
         <Route path="privacy" element={<PrivacyPage />} />
         <Route path="terms" element={<TermsPage />} />
 
-        {/* Protected routes - any authenticated user */}
+        {/* Dashboard is organizer-only — attendees are bounced to /my-bookings */}
         <Route
           path="dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="organizer">
               <DashboardPage />
             </ProtectedRoute>
           }
@@ -77,11 +78,11 @@ function App() {
           }
         />
 
-        {/* Booking routes - any authenticated user */}
+        {/* My Bookings is attendee-only; organizers are bounced to /dashboard */}
         <Route
           path="my-bookings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="attendee">
               <MyBookingsPage />
             </ProtectedRoute>
           }
@@ -149,6 +150,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="organizer">
               <AnalyticsDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="team"
+          element={
+            <ProtectedRoute requiredRole="organizer">
+              <TeamPage />
             </ProtectedRoute>
           }
         />

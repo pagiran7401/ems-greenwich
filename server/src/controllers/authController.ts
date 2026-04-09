@@ -1,8 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/User';
+import Organization from '../models/Organization';
 import { generateToken } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 import type { RegisterInput, LoginInput, AuthResponse, UserPublic, ApiResponse } from '@ems/shared';
+
+// Build the public user response including org/role fields
+const toUserPublic = (user: any): UserPublic => ({
+  _id: user._id.toString(),
+  email: user.email,
+  userType: user.userType,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  phone: user.phone,
+  organizationId: user.organizationId ? user.organizationId.toString() : null,
+  organizerRole: user.organizerRole ?? null,
+  customRoleLabel: user.customRoleLabel ?? '',
+  isActive: user.isActive ?? true,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -29,28 +46,28 @@ export const register = async (
       firstName,
       lastName,
       phone,
+      isActive: true,
     });
+
+    // If registering as organizer, auto-create an Organization and make this user its admin
+    if (userType === 'organizer') {
+      const org = await Organization.create({
+        name: `${firstName}'s Team`,
+        ownerId: user._id,
+      });
+      user.organizationId = org._id;
+      user.organizerRole = 'admin';
+      await user.save();
+    }
 
     // Generate token
     const token = generateToken(user);
-
-    // Return success response
-    const userResponse: UserPublic = {
-      _id: user._id.toString(),
-      email: user.email,
-      userType: user.userType,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
 
     res.status(201).json({
       success: true,
       message: 'Registration successful',
       token,
-      user: userResponse,
+      user: toUserPublic(user),
     });
   } catch (error) {
     next(error);
@@ -69,60 +86,30 @@ export const login = async (
     const { email, password } = req.body;
 
     // Find user and include password field
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password +failedLoginAttempts +lockUntil');
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
       throw new AppError('Invalid email or password', 401);
     }
 
-    // Check if account is locked
-    if (user.lockUntil && user.lockUntil > new Date()) {
-      const minutesLeft = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
-      throw new AppError(`Account is locked. Try again in ${minutesLeft} minute(s)`, 423);
+    // Reject login if the account has been deactivated by an admin
+    if (user.isActive === false) {
+      throw new AppError('This account has been deactivated. Contact your organization admin.', 403);
     }
 
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      // Increment failed attempts
-      const attempts = (user.failedLoginAttempts || 0) + 1;
-      const updateData: any = { failedLoginAttempts: attempts };
-
-      // Lock account after 5 failed attempts (15 minute lockout)
-      if (attempts >= 5) {
-        updateData.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
-        await User.updateOne({ _id: user._id }, updateData);
-        throw new AppError('Account locked due to too many failed login attempts. Try again in 15 minutes', 423);
-      }
-
-      await User.updateOne({ _id: user._id }, updateData);
-      throw new AppError(`Invalid email or password. ${5 - attempts} attempt(s) remaining`, 401);
-    }
-
-    // Reset failed attempts on successful login
-    if (user.failedLoginAttempts > 0 || user.lockUntil) {
-      await User.updateOne({ _id: user._id }, { failedLoginAttempts: 0, lockUntil: null });
+      throw new AppError('Invalid email or password', 401);
     }
 
     // Generate token
     const token = generateToken(user);
 
-    // Return success response
-    const userResponse: UserPublic = {
-      _id: user._id.toString(),
-      email: user.email,
-      userType: user.userType,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-
     res.status(200).json({
       success: true,
       message: 'Login successful',
       token,
-      user: userResponse,
+      user: toUserPublic(user),
     });
   } catch (error) {
     next(error);
@@ -155,21 +142,10 @@ export const getMe = async (
 ): Promise<void> => {
   const user = req.user!;
 
-  const userResponse: UserPublic = {
-    _id: user._id.toString(),
-    email: user.email,
-    userType: user.userType,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    phone: user.phone,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
-
   res.status(200).json({
     success: true,
     message: 'User retrieved successfully',
-    user: userResponse,
+    user: toUserPublic(user),
   });
 };
 
@@ -200,21 +176,10 @@ export const updateProfile = async (
       throw new AppError('User not found', 404);
     }
 
-    const userResponse: UserPublic = {
-      _id: user._id.toString(),
-      email: user.email,
-      userType: user.userType,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
-      data: userResponse,
+      data: toUserPublic(user),
     });
   } catch (error) {
     next(error);

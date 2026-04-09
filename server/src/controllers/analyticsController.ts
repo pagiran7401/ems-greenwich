@@ -7,10 +7,23 @@ import Event from '../models/Event';
 // Get organizer dashboard stats
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
+    if (!organizationId) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          totalRevenue: 0,
+          totalTicketsSold: 0,
+          totalBookings: 0,
+          totalEvents: 0,
+          publishedEvents: 0,
+          upcomingEvents: 0,
+        },
+      });
+    }
 
-    // Get all organizer's events
-    const events = await Event.find({ organizerId: userId });
+    // Get all events in the organization
+    const events = await Event.find({ organizationId });
     const eventIds = events.map((e) => e._id);
 
     // Get all completed bookings for organizer's events
@@ -171,14 +184,14 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 export const getEventAnalytics = async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?._id;
+    const organizationId = req.user?.organizationId;
 
-    // Check event ownership
+    // Check event ownership at organization level
     const event = await Event.findById(eventId);
     if (!event) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
-    if (event.organizerId.toString() !== userId?.toString()) {
+    if (!organizationId || event.organizationId?.toString() !== organizationId.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to view analytics' });
     }
 

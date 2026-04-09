@@ -2,8 +2,9 @@ import mongoose, { Document, Schema, Types } from 'mongoose';
 import type { IEvent, EventStatus, EventCategory } from '@ems/shared';
 
 // Extend IEvent for Mongoose document
-export interface IEventDocument extends Omit<IEvent, '_id' | 'organizerId'>, Document {
+export interface IEventDocument extends Omit<IEvent, '_id' | 'organizerId' | 'organizationId'>, Document {
   organizerId: Types.ObjectId;
+  organizationId: Types.ObjectId;
 }
 
 const eventSchema = new Schema<IEventDocument>(
@@ -12,6 +13,12 @@ const eventSchema = new Schema<IEventDocument>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Organizer ID is required'],
+      index: true,
+    },
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
+      required: [true, 'Organization ID is required'],
       index: true,
     },
     eventName: {
@@ -74,9 +81,12 @@ const eventSchema = new Schema<IEventDocument>(
   {
     timestamps: true,
     toJSON: {
-      transform: (_doc, ret) => {
+      transform: (_doc: any, ret: any) => {
         ret._id = ret._id.toString();
         ret.organizerId = ret.organizerId.toString();
+        if (ret.organizationId) {
+          ret.organizationId = ret.organizationId.toString();
+        }
         delete ret.__v;
         return ret;
       },
